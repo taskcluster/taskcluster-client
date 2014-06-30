@@ -50,7 +50,7 @@ Listener.prototype.bind = function(binding) {
       binding.routingKey
     );
   } else {
-    return Promise.from(null);
+    return Promise.resolve(null);
   }
 };
 
