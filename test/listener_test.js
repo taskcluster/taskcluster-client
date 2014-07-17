@@ -61,7 +61,7 @@ suite('listener', function() {
       });
     });
 
-    var published = listener.connect().then(function() {
+    var published = listener.resume().then(function() {
       return _publisher.testExchange({
         text:           "my message"
       }, {
@@ -97,7 +97,7 @@ suite('listener', function() {
       });
     });
 
-    var published = listener.connect().then(function() {
+    var published = listener.resume().then(function() {
       return _publisher.testExchange({
         text:           "my message"
       }, {
@@ -134,7 +134,7 @@ suite('listener', function() {
       });
     });
 
-    var published = listener.connect().then(function() {
+    var published = listener.resume().then(function() {
       return _publisher.testExchange({
         text:           "my message"
       }, {
@@ -170,7 +170,7 @@ suite('listener', function() {
       });
     });
 
-    var published = listener.connect().then(function() {
+    var published = listener.resume().then(function() {
       return _publisher.testExchange({
         text:           "my message"
       }, {
@@ -210,7 +210,7 @@ suite('listener', function() {
       });
     });
 
-    var published = listener.connect().then(function() {
+    var published = listener.resume().then(function() {
       return _publisher.testExchange({
         text:           "my message"
       }, {
@@ -279,7 +279,7 @@ suite('listener', function() {
       });
     });
 
-    return listener.connect().then(function() {
+    return listener.resume().then(function() {
       return listener.pause().then(function() {
         return _publisher.testExchange({
           text:           "my message"
