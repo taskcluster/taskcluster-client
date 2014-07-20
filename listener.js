@@ -79,8 +79,8 @@ Listener.prototype.connect = function() {
   });
 
   // Find queue name and decide if this is an exclusive queue
+  var exclusive = !this._options.queueName;
   this._queueName = this._options.queueName || slugid.v4();
-  var exclusive = this._options.queueName != undefined;
 
   // Create queue
   var queueCreated = channelCreated.then(function() {

@@ -189,6 +189,7 @@ suite('listener', function() {
 
     // Create listener
     var listener = new taskcluster.Listener({
+      queueName:            slugid.v4(),
       connectionString:     mockEvents.connectionString
     });
     listener.bind(mockEventsClient.testExchange({testId: 'test'}));
@@ -258,6 +259,7 @@ suite('listener', function() {
 
     // Create listener
     var listener = new taskcluster.Listener({
+      queueName:            slugid.v4(),
       connectionString:     mockEvents.connectionString,
       maxLength:            3
     });
