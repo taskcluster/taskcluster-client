@@ -9,6 +9,7 @@ var request     = require('superagent-promise');
 var debug       = require('debug')('taskcluster-client');
 var _           = require('lodash');
 var assert      = require('assert');
+var Hawk        = require('hawk');
 
 // Default options stored globally for convenience
 var _defaultOptions = {
@@ -65,6 +66,63 @@ exports.createClient = function(reference) {
     if (entry.input) {
       nb_args += 1;
     }
+
+    // Utility function to build the request URL, given input parameters
+    var buildUrl = function() {
+      debug("build url for: " + entry.name);
+      // Convert arguments to actual array
+      var args = Array.prototype.slice.call(arguments);
+      // Validate number of arguments
+      var nb_url_params = nb_args - 1;
+      if (args.length != nb_url_params) {
+        throw new Error("Function " + entry.name + "buildUrl() takes " +
+                        nb_url_params + "arguments, but was given " + args.length +
+                        " arguments");
+      }
+      // Substitute parameters into route
+      var endpoint = entry.route;
+      entry.args.forEach(function(arg) {
+        var value = args.shift();
+        // Replace with empty string in case of undefined or null argument
+        if (value === undefined || value === null) {
+          value = '';
+        }
+        endpoint = endpoint.replace('<' + arg + '>', value);
+      });
+
+      return this._options.baseUrl + endpoint;
+    };
+
+    // Utility function to construct a bewit URL for GET requests
+    var signedUrl = function() {
+      // Convert arguments to actual array
+      var args = Array.prototype.slice.call(arguments);
+      if (args.length != nb_args) {
+        throw new Error("Function " + entry.name + ".signedUrl() takes " +
+                        nb_args + "arguments, but was given " + args.length +
+                        " arguments");
+      }
+      // Get expiration
+      var expiration = args.pop();
+      assert(typeof(expiration) === 'number', "expiration must be a number");
+      // Build the URL
+
+      // SHIT we can't get this in the current context... find another way!!
+      assert(this._options.credentials.clientId, "credentials must be given");
+      assert(this._options.credentials.accessToken,
+             "accessToken must be given");
+      var url = buildUrl.call(undefined, args);
+      var bewit = Hawk.uri.getBewit(url, {
+        credentials:    {
+          id:         this._options.credentials.clientId,
+          key:        this._options.credentials.accessToken,
+          algorithm:  'sha256'
+        },
+        ttlSec:         expiration,
+        ext:            'some-app-data'
+      });
+    };
+
     // Create method on prototype
     Client.prototype[entry.name] = function() {
       debug("Calling: " + entry.name);
