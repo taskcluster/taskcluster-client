@@ -9,6 +9,7 @@ var request     = require('superagent-promise');
 var debug       = require('debug')('taskcluster-client');
 var _           = require('lodash');
 var assert      = require('assert');
+var url         = require('url');
 
 // Default options stored globally for convenience
 var _defaultOptions = {
@@ -111,11 +112,26 @@ exports.createClient = function(reference) {
           key:        this._options.credentials.accessToken,
           algorithm:  'sha256'
         }, extra);
+
+        var targetUrl = url.parse(req.url);
+
+        // If there was a redirect we should strip out auth details if the
+        // domain has changed.
+        req.on('redirect', function() {
+          // We cannot mutate the headers until `.request` has been created.
+          req.once('request', function(redirectReq) {
+            // Ensure we don't send credentials to domains in another origin.
+            var redirectUrlParsed = url.parse(redirectReq.url);
+            if (targetUrl.host !== redirectUrlParsed.host) {
+              redirectReq.unset('authorization');
+            }
+          });
+        });
       }
       // Send request and handle response
       return req.end().then(function(res) {
         if (!res.ok) {
-          debug("Error calling: %s, info: %j", entry.name, res.body);
+          debug("Error calling: " + entry.name, res.status, res.body);
           var message = "Unknown Server Error";
           if (res.status === 401) {
             message = "Authentication Error";
@@ -128,7 +144,13 @@ exports.createClient = function(reference) {
           throw err
         }
         debug("Success calling: " + entry.name);
-        return res.body;
+
+        // Only return res.body if we are using json...
+        if (res.header['content-type'].indexOf('json') !== -1) {
+          return res.body;
+        } else {
+          return res.text;
+        }
       });
     };
   });
