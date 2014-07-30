@@ -131,7 +131,9 @@ exports.createClient = function(reference) {
       // Send request and handle response
       return req.end().then(function(res) {
         if (!res.ok) {
-          debug("Error calling: " + entry.name, res.status, res.body);
+          debug("Error calling: %s, status: %s, body: %j",
+                entry.name, res.status, res.body);
+
           var message = "Unknown Server Error";
           if (res.status === 401) {
             message = "Authentication Error";
