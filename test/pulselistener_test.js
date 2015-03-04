@@ -89,6 +89,16 @@ suite('PulseListener', function() {
   });
 
 
+  test('bind via connection string', function() {
+    var listener = new taskcluster.PulseListener({
+      credentials: connectionString
+    });
+
+    return listener.resume().then(function() {
+      return listener.close();
+    });
+  });
+
   // Bind and listen with listener
   test('bind and listen', function() {
     // Create listener
