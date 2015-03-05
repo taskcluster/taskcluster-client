@@ -91,7 +91,10 @@ suite('PulseListener', function() {
 
   test('bind via connection string', function() {
     var listener = new taskcluster.PulseListener({
-      credentials: connectionString
+      credentials: {
+        namespace:            cfg.get('pulse:username'),
+        connectionString:     connectionString
+      }
     });
 
     return listener.resume().then(function() {
