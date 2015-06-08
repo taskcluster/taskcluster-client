@@ -1844,6 +1844,9 @@ var _defaultOptions = {
   // 100 ms is solid for servers, and 500ms - 1s is suitable for background
   // processes
   delayFactor:    100,
+  // Randomization factor added as.
+  // delay = delay * random([1 - randomizationFactor; 1 + randomizationFactor])
+  randomizationFactor: 0.25,
   // Maximum retry delay (defaults to 30 seconds)
   maxDelay:       30 * 1000,
 };
@@ -1920,6 +1923,11 @@ exports.createClient = function(reference) {
       baseUrl:          reference.baseUrl        || '',
       exchangePrefix:   reference.exchangePrefix || ''
     }, _defaultOptions);
+
+    if (this._options.randomizationFactor <= 0 ||
+        this._options.randomizationFactor >= 1) {
+      throw new Error("options.randomizationFactor must be between 0 and 1!");
+    }
 
     // Shortcut for which default agent to use...
     var isHttps = this._options.baseUrl.indexOf('https') === 0;
@@ -2086,6 +2094,9 @@ exports.createClient = function(reference) {
           // First request is attempt = 1, so attempt = 2 is the first retry
           // we subtract one to get exponents: 1, 2, 3, 4, 5, ...
           delay = Math.pow(2, attempts - 1) * that._options.delayFactor;
+          // Apply randomization factor
+          var rf = that._options.randomizationFactor;
+          delay = delay * (Math.random() * 2 * rf + 1 - rf);
           // Always limit with a maximum delay
           delay = Math.min(delay, that._options.maxDelay);
           // Sleep then send the request
