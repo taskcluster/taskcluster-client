@@ -28,6 +28,16 @@ suite('PulseListener', function() {
     return;
   }
 
+  let proxy = new TcpProxyServer(5672, 'pulse.mozilla.org');
+  setup(() => {
+    proxy.connectionCount = 0;
+    return proxy.listen(61321);
+  });
+
+  teardown(() => {
+    return proxy.close();
+  });
+
   // Pulse credentials
   var credentials = {
     username:   cfg.get('pulse:username'),
@@ -75,16 +85,6 @@ suite('PulseListener', function() {
     return connection.connect().then(function() {
       return connection.close();
     });
-  });
-
-  let proxy = new TcpProxyServer(5672, 'pulse.mozilla.org');
-  setup(() => {
-    proxy.connectionCount = 0;
-    return proxy.listen(61321);
-  });
-
-  teardown(() => {
-    return proxy.close();
   });
 
   test('Create PulseConnection w. TcpTestProxy', async () => {

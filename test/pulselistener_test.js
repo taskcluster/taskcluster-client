@@ -6,6 +6,9 @@ suite('PulseListener', function() {
   var slugid          = require('slugid');
   var debug           = require('debug')('test:listener');
   var base            = require('taskcluster-base');
+  var _               = require('lodash');
+  var TcpProxyServer  = require('./tcpproxyserver');
+  var assume          = require('assume');
 
   this.timeout(60 * 1000);
 
@@ -54,22 +57,23 @@ suite('PulseListener', function() {
     exchangePrefix:         exchangePrefix
   });
 
-  var _publisher = null;
-  setup(function() {
+  let proxy = new TcpProxyServer(5672, 'pulse.mozilla.org');
+  let publisher = null;
+  setup(async () => {
+    proxy.connectionCount = 0;
     mockEvents.configure({
       connectionString:       connectionString,
       exchangePrefix:         exchangePrefix
     });
-    debug("Connecting");
-    return mockEvents.connect().then(function(publisher) {
-      debug("Connected");
-      _publisher = publisher;
-    });
+    publisher = await mockEvents.connect();
+    await proxy.listen(61321);
   });
-  teardown(function() {
-    return _publisher.close().then(function() {
-      _publisher = null;
-    });
+  teardown(async () => {
+    await Promise.all([
+      publisher.close(),
+      proxy.close()
+    ]);
+    publisher = null;
   });
   var reference = mockEvents.reference();
 
@@ -77,41 +81,37 @@ suite('PulseListener', function() {
   var MockEventsClient = taskcluster.createClient(reference);
   var mockEventsClient = new MockEventsClient();
 
-
   // Test that client provides us with binding information
-  test('binding info', function() {
+  test('binding info', () => {
     var info = mockEventsClient.testExchange({testId: 'test'});
     assert(info.exchange === exchangePrefix + 'test-exchange');
     assert(info.routingKeyPattern === 'my-constant.test.#.*.*');
   });
 
   // Test that binding info is generated with number as routing keys
-  test('binding info with number', function() {
+  test('binding info with number', () => {
     var info = mockEventsClient.testExchange({testId: 0});
     assert(info.exchange === exchangePrefix + 'test-exchange');
     assert(info.routingKeyPattern === 'my-constant.0.#.*.*');
   });
 
 
-  test('bind via connection string', function() {
+  test('bind via connection string', async () => {
     var listener = new taskcluster.PulseListener({
-      credentials: {
-        connectionString: connectionString
-      }
+      credentials: {connectionString}
     });
 
-    return listener.resume().then(function() {
-      return listener.close();
-    });
+    await listener.resume();
+    await listener.close();
   });
 
   // Bind and listen with listener
-  test('bind and listen', function() {
+  test('bind and listen', async () => {
     // Create listener
     var listener = new taskcluster.PulseListener({
       credentials:          credentials
     });
-    listener.bind({
+    await listener.bind({
       exchange: exchangePrefix + 'test-exchange',
       routingKeyPattern: '#'
     });
@@ -128,20 +128,19 @@ suite('PulseListener', function() {
       });
     });
 
-    var published = listener.resume().then(function() {
-      return _publisher.testExchange({
-        text:           "my message"
-      }, {
-        testId:         'test',
-        taskRoutingKey: 'hello.world'
-      });
+    await listener.resume();
+    await publisher.testExchange({
+      text:           "my message"
+    }, {
+      testId:         'test',
+      taskRoutingKey: 'hello.world'
     });
 
-    return Promise.all([published, result]);
+    await result;
   });
 
   // Bind and listen with listener (for CC)
-  test('bind and listen (for CC)', function() {
+  test('bind and listen (for CC)', async () => {
     // Create listener
     var listener = new taskcluster.PulseListener({
       credentials:          credentials
@@ -163,20 +162,19 @@ suite('PulseListener', function() {
       });
     });
 
-    var published = listener.resume().then(function() {
-      return _publisher.testExchange({
-        text:           "my message"
-      }, {
-        testId:         'test',
-        taskRoutingKey: 'hello.world'
-      }, ['route.test']);
-    });
+    await listener.resume();
+    await publisher.testExchange({
+      text:           "my message"
+    }, {
+      testId:         'test',
+      taskRoutingKey: 'hello.world'
+    }, ['route.test']);
 
-    return Promise.all([published, result]);
+    await result;
   });
 
   // Bind and listen with listener (for CC using client)
-  test('bind and listen (for CC using client)', function() {
+  test('bind and listen (for CC using client)', async () => {
     // Create listener
     var listener = new taskcluster.PulseListener({
       credentials:          credentials
@@ -196,20 +194,19 @@ suite('PulseListener', function() {
       });
     });
 
-    var published = listener.resume().then(function() {
-      return _publisher.testExchange({
-        text:           "my message"
-      }, {
-        testId:         'test',
-        taskRoutingKey: 'hello.world'
-      }, ['route.test']);
-    });
+    await listener.resume();
+    await publisher.testExchange({
+      text:           "my message"
+    }, {
+      testId:         'test',
+      taskRoutingKey: 'hello.world'
+    }, ['route.test']);
 
-    return Promise.all([published, result]);
+    await result;
   });
 
   // Bind and listen with listener (manual routing key)
-  test('bind and listen (manual constant routing key)', function() {
+  test('bind and listen (manual constant routing key)', async () => {
     // Create listener
     var listener = new taskcluster.PulseListener({
       credentials:          credentials
@@ -231,20 +228,19 @@ suite('PulseListener', function() {
       });
     });
 
-    var published = listener.resume().then(function() {
-      return _publisher.testExchange({
-        text:           "my message"
-      }, {
-        testId:         'test',
-        taskRoutingKey: 'hello.world'
-      });
+    await listener.resume();
+    await publisher.testExchange({
+      text:           "my message"
+    }, {
+      testId:         'test',
+      taskRoutingKey: 'hello.world'
     });
 
-    return Promise.all([published, result]);
+    await result;
   });
 
   // Bind and listen with listener and non-match routing
-  test('bind and listen (without wrong routing key)', function() {
+  test('bind and listen (without wrong routing key)', async () => {
     // Create listener
     var listener = new taskcluster.PulseListener({
       credentials:          credentials
@@ -255,209 +251,178 @@ suite('PulseListener', function() {
     });
 
     var result = new Promise(function(accept, reject) {
-      listener.on('message', function(message) {
+      listener.on('message', message => {
         reject(new Error("Didn't expect message"));
       });
-      listener.on('error', function(err) {
-        reject(err);
-      });
-      listener.connect().then(function() {
-        setTimeout(accept, 1500);
-      }, reject);
-    }).then(function() {
-      return listener.close();
+      listener.on('error', reject);
+      listener.connect().then(() => setTimeout(accept, 1500), reject);
     });
 
-    var published = listener.resume().then(function() {
-      return _publisher.testExchange({
-        text:           "my message"
-      }, {
-        testId:         'test',
-        taskRoutingKey: 'hello.world'
-      }, ['route.test']);
-    });
+    await listener.resume();
+    await publisher.testExchange({
+      text:           "my message"
+    }, {
+      testId:         'test',
+      taskRoutingKey: 'hello.world'
+    }, ['route.test']);
 
-    return Promise.all([published, result]);
+    await result;
+    await listener.close();
   });
 
 
   // Test that routing key can be parsed if proper information is provided
-  test('parse routing key', function() {
+  test('parse routing key', async () => {
     // Create listener
     var listener = new taskcluster.PulseListener({
       credentials:          credentials
     });
     listener.bind(mockEventsClient.testExchange({testId: 'test'}));
 
-    var result = new Promise(function(accept, reject) {
-      listener.on('message', function(message) {
+    var result = new Promise((accept, reject) => {
+      listener.on('message', message => {
         assert(message.payload.text == "my message");
         assert(message.routing, "Failed to parse routing key");
         assert(message.routing.taskRoutingKey == 'hello.world');
-        setTimeout(function() {
-          listener.close().then(accept, reject)
-        }, 500);
+        setTimeout(() => listener.close().then(accept, reject), 500);
       });
-      listener.on('error', function(err) {
-        reject(err);
-      });
+      listener.on('error', reject);
     });
 
-    var published = listener.resume().then(function() {
-      return _publisher.testExchange({
-        text:           "my message"
-      }, {
-        testId:         'test',
-        taskRoutingKey: 'hello.world'
-      });
+    await listener.resume()
+    await publisher.testExchange({
+      text:           "my message"
+    }, {
+      testId:         'test',
+      taskRoutingKey: 'hello.world'
     });
 
-    return Promise.all([published, result]);
+    await result;
   });
 
   // Naive test that creation work when providing a name for the queue
-  test('named queue', function() {
+  test('named queue', async () => {
     // Create listener
     var listener = new taskcluster.PulseListener({
       queueName:            slugid.v4(),
       credentials:          credentials
     });
-    listener.bind(mockEventsClient.testExchange({testId: 'test'}));
+    await listener.bind(mockEventsClient.testExchange({testId: 'test'}));
 
-    var result = new Promise(function(accept, reject) {
-      listener.on('message', function(message) {
+    var result = new Promise((accept, reject) => {
+      listener.on('message', message => {
         assert(message.payload.text == "my message");
         assert(message.routing, "Failed to parse routing key");
         assert(message.routing.taskRoutingKey == 'hello.world');
-        setTimeout(function() {
-          listener.close().then(accept, reject)
-        }, 500);
+        setTimeout(() => listener.close().then(accept, reject), 500);
       });
-      listener.on('error', function(err) {
-        reject(err);
-      });
+      listener.on('error', reject);
     });
 
-    var published = listener.resume().then(function() {
-      return _publisher.testExchange({
-        text:           "my message"
-      }, {
-        testId:         'test',
-        taskRoutingKey: 'hello.world'
-      });
-    });
+    await listener.resume();
 
-    return Promise.all([published, result]).then(function() {
-      return listener.deleteQueue();
+    await base.testing.sleep(500);
+    await publisher.testExchange({
+      text:           "my message"
+    }, {
+      testId:         'test',
+      taskRoutingKey: 'hello.world'
     });
+    await result;
+    await listener.deleteQueue();
   });
 
-  test('deletion of named queue', function() {
+  test('deletion of named queue', async () => {
     // Create listener
     var listener = new taskcluster.PulseListener({
       queueName:            slugid.v4(),
       credentials:          credentials
     });
 
-    return listener.deleteQueue();
+    await listener.deleteQueue();
   });
 
   // Test routing with multi key
-  test('multi-word routing', function() {
+  test('multi-word routing', async () => {
     // Create listener
     var listener = new taskcluster.PulseListener({
       credentials:          credentials
     });
     listener.bind(mockEventsClient.testExchange({taskRoutingKey: '*.world'}));
 
-    var result = new Promise(function(accept, reject) {
-      listener.on('message', function(message) {
+    var result = new Promise((accept, reject) => {
+      listener.on('message', message => {
         assert(message.payload.text == "my message");
         assert(message.routing, "Failed to parse routing key");
         assert(message.routing.taskRoutingKey == 'hello.world');
-        setTimeout(function() {
-          listener.close().then(accept, reject)
-        }, 500);
+        setTimeout(() => listener.close().then(accept, reject), 500);
       });
-      listener.on('error', function(err) {
-        reject(err);
-      });
+      listener.on('error', reject);
     });
 
-    var published = listener.resume().then(function() {
-      return _publisher.testExchange({
-        text:           "my message"
-      }, {
-        testId:         'test',
-        taskRoutingKey: 'hello.world'
-      });
+    await listener.resume();
+    await publisher.testExchange({
+      text:           "my message"
+    }, {
+      testId:         'test',
+      taskRoutingKey: 'hello.world'
     });
 
-    return Promise.all([published, result]);
+    await result;
   });
 
   // Test listener without multi-word
-  test('parse without multi-words', function() {
+  test('parse without multi-words', async () => {
     // Create listener
     var listener = new taskcluster.PulseListener({
       credentials:          credentials
     });
     listener.bind(mockEventsClient.simpleTestExchange({testId: 'test'}));
 
-    var result = new Promise(function(accept, reject) {
-      listener.once('message', function(message) {
+    var result = new Promise((accept, reject) => {
+      listener.once('message', message => {
         assert(message.payload.text == "my message");
-        setTimeout(function() {
-          listener.close().then(accept, reject)
-        }, 500);
+        setTimeout(() => listener.close().then(accept, reject), 500);
       });
-      listener.once('error', function(err) {
-        reject(err);
-      });
+      listener.once('error', reject);
     });
 
-    var published = listener.resume().then(function() {
-      return _publisher.simpleTestExchange({
-        text:           "my message"
-      }, {
-        testId:         'test'
-      });
+    await listener.resume();
+    await publisher.simpleTestExchange({
+      text:           "my message"
+    }, {
+      testId:         'test'
     });
 
-    return Promise.all([published, result]);
+    await result;
   });
 
   // Test listener without any routing keys
-  test('parse without any routing keys', function() {
+  test('parse without any routing keys', async () => {
     // Create listener
     var listener = new taskcluster.PulseListener({
       credentials:          credentials
     });
     listener.bind(mockEventsClient.reallySimpleTestExchange());
 
-    var result = new Promise(function(accept, reject) {
-      listener.once('message', function(message) {
+    var result = new Promise((accept, reject) => {
+      listener.once('message', message => {
         assert(message.payload.text == "my message");
-        setTimeout(function() {
-          listener.close().then(accept, reject)
-        }, 500);
+        setTimeout(() => listener.close().then(accept, reject), 500);
       });
-      listener.once('error', function(err) {
-        reject(err);
-      });
+      listener.once('error', reject);
     });
 
-    var published = listener.resume().then(function() {
-      return _publisher.reallySimpleTestExchange({
-        text:           "my message"
-      });
+    await listener.resume();
+    await publisher.reallySimpleTestExchange({
+      text:           "my message"
     });
 
-    return Promise.all([published, result]);
+    await result;
   });
 
   // Test listener.once
-  test('bind and listen  (using listener.once)', function() {
+  test('bind and listen (using listener.once)', async () =>  {
     // Create listener
     var listener = new taskcluster.PulseListener({
       credentials:          credentials
@@ -467,32 +432,27 @@ suite('PulseListener', function() {
       routingKeyPattern: '#'
     });
 
-    var result = new Promise(function(accept, reject) {
-      listener.once('message', function(message) {
+    var result = new Promise((accept, reject) => {
+      listener.once('message', message => {
         assert(message.payload.text == "my message");
-        setTimeout(function() {
-          listener.close().then(accept, reject)
-        }, 500);
+        setTimeout(() => listener.close().then(accept, reject), 500);
       });
-      listener.once('error', function(err) {
-        reject(err);
-      });
+      listener.once('error', reject);
     });
 
-    var published = listener.resume().then(function() {
-      return _publisher.testExchange({
-        text:           "my message"
-      }, {
-        testId:         'test',
-        taskRoutingKey: 'hello.world'
-      });
+    await listener.resume()
+    await publisher.testExchange({
+      text:           "my message"
+    }, {
+      testId:         'test',
+      taskRoutingKey: 'hello.world'
     });
 
-    return Promise.all([published, result]);
+    await result;
   });
 
   // Test pause and resume
-  test('pause/resume', function() {
+  test('pause/resume', async () =>  {
     // Create listener
     var listener = new taskcluster.PulseListener({
       queueName:            slugid.v4(),
@@ -501,68 +461,60 @@ suite('PulseListener', function() {
     listener.bind(mockEventsClient.testExchange({testId: 'test'}));
 
     var count = 0;
-    var result = new Promise(function(accept, reject) {
-      listener.on('message', function(message) {
+    var result = new Promise((accept, reject) => {
+      listener.on('message', message => {
         assert(message.payload.text == "my message");
         count += 1;
         if (count == 4) {
-          setTimeout(function() {
-            listener.close().then(accept, reject)
-          }, 500);
+          setTimeout(() => listener.close().then(accept, reject), 500);
         }
         assert(count <= 4, "Shouldn't get more than 4 messages");
       });
-      listener.on('error', function(err) {
-        reject(err);
-      });
+      listener.on('error', reject);
     });
 
-    var published = listener.resume().then(function() {
-      return _publisher.testExchange({
-        text:           "my message"
-      }, {
-        testId:         'test',
-        taskRoutingKey: 'hello.world'
-      }).then(function() {
-        return _publisher.testExchange({
-          text:           "my message"
-        }, {
-          testId:         'test',
-          taskRoutingKey: 'hello.world'
-        });
-      }).then(function() {
-        return new Promise(function(accept) {setTimeout(accept, 500);});
-      }).then(function() {
-        assert(count == 2, "Should have two messages now");
-        return listener.pause();
-      }).then(function() {
-        return _publisher.testExchange({
-          text:           "my message"
-        }, {
-          testId:         'test',
-          taskRoutingKey: 'hello.world'
-        });
-      }).then(function() {
-        return _publisher.testExchange({
-          text:           "my message"
-        }, {
-          testId:         'test',
-          taskRoutingKey: 'hello.world'
-        });
-      }).then(function() {
-        return new Promise(function(accept) {setTimeout(accept, 500);});
-      }).then(function() {
-        assert(count == 2, "Should have two messages now");
-        return listener.resume();
-      });
+    await listener.resume();
+    await publisher.testExchange({
+      text:           "my message"
+    }, {
+      testId:         'test',
+      taskRoutingKey: 'hello.world'
     });
-    return Promise.all([published, result]).then(function() {
-      return listener.deleteQueue();
+
+    await publisher.testExchange({
+      text:           "my message"
+    }, {
+      testId:         'test',
+      taskRoutingKey: 'hello.world'
     });
+    await new Promise(accept => setTimeout(accept, 500));
+
+    assert(count == 2, "Should have two messages now");
+    await listener.pause();
+
+    await publisher.testExchange({
+      text:           "my message"
+    }, {
+      testId:         'test',
+      taskRoutingKey: 'hello.world'
+    });
+    await publisher.testExchange({
+      text:           "my message"
+    }, {
+      testId:         'test',
+      taskRoutingKey: 'hello.world'
+    });
+
+    await new Promise(accept => setTimeout(accept, 500));
+    assert(count == 2, "Should have two messages now");
+    await listener.resume();
+
+    await result;
+    await listener.deleteQueue();
   });
 
   // Test pause and resume
-  test('pause/resume with maxLength', function() {
+  test('pause/resume with maxLength', async () => {
     // Create listener
     var listener = new taskcluster.PulseListener({
       queueName:            slugid.v4(),
@@ -572,66 +524,56 @@ suite('PulseListener', function() {
     listener.bind(mockEventsClient.testExchange({testId: 'test'}));
 
     var count = 0;
-    var result = new Promise(function(accept, reject) {
-      listener.on('message', function(message) {
+    var result = new Promise((accept, reject) => {
+      listener.on('message', (message) => {
         count += 1;
         assert(count <= 3, "Shouldn't get more than 3 messages");
         if (message.payload.text == "end") {
-          setTimeout(function() {
-            listener.close().then(accept, reject)
-          }, 500);
+          setTimeout(() => listener.close().then(accept, reject), 500);
         }
       });
-      listener.on('error', function(err) {
-        reject(err);
-      });
+      listener.on('error', reject);
     });
 
-    return listener.resume().then(function() {
-      return listener.pause().then(function() {
-        return _publisher.testExchange({
-          text:           "my message"
-        }, {
-          testId:         'test',
-          taskRoutingKey: 'hello.world'
-        });
-      }).then(function() {
-        return _publisher.testExchange({
-          text:           "my message"
-        }, {
-          testId:         'test',
-          taskRoutingKey: 'hello.world'
-        });
-      }).then(function() {
-        return _publisher.testExchange({
-          text:           "my message"
-        }, {
-          testId:         'test',
-          taskRoutingKey: 'hello.world'
-        });
-      }).then(function() {
-        return _publisher.testExchange({
-          text:           "end"
-        }, {
-          testId:         'test',
-          taskRoutingKey: 'hello.world'
-        });
-      }).then(function() {
-        return new Promise(function(accept) {setTimeout(accept, 500);});
-      }).then(function() {
-        return listener.resume();
-      }).then(function() {
-        return result;
-      }).then(function() {
-        assert(count == 3, "We should only have got 3 messages");
-      });
-    }).then(function() {
-      return listener.deleteQueue();
+    await listener.resume();
+
+    await listener.pause()
+    await publisher.testExchange({
+      text:           "my message"
+    }, {
+      testId:         'test',
+      taskRoutingKey: 'hello.world'
     });
+
+    await publisher.testExchange({
+      text:           "my message"
+    }, {
+      testId:         'test',
+      taskRoutingKey: 'hello.world'
+    });
+    await publisher.testExchange({
+      text:           "my message"
+    }, {
+      testId:         'test',
+      taskRoutingKey: 'hello.world'
+    });
+    await  publisher.testExchange({
+      text:           "end"
+    }, {
+      testId:         'test',
+      taskRoutingKey: 'hello.world'
+    });
+
+    await new Promise(accept => setTimeout(accept, 500));
+    await listener.resume();
+    await result;
+    assert(count == 3, "We should only have got 3 messages");
+
+    await listener.deleteQueue();
   });
 
 
-  test('connection w. two consumers', function() {
+  test('connection w. two consumers', async () => {
     // Create connection object
     var connection = new taskcluster.PulseConnection(credentials);
 
@@ -645,57 +587,47 @@ suite('PulseListener', function() {
     });
     listener2.bind(mockEventsClient.testExchange({testId: 'test2'}));
 
-    var result1 = new Promise(function(accept, reject) {
-      listener1.on('message', function(message) {
+    var result1 = new Promise((accept, reject) => {
+      listener1.on('message', message => {
         debug("got message 1");
         assert(message.payload.text == "my message 1");
-        setTimeout(function() {
-          listener1.close().then(accept, reject)
-        }, 500);
+        setTimeout(() =>listener1.close().then(accept, reject), 500);
       });
-      listener1.on('error', function(err) {
-        reject(err);
-      });
+      listener1.on('error', reject);
     });
 
-    var result2 = new Promise(function(accept, reject) {
-      listener2.on('message', function(message) {
+    var result2 = new Promise((accept, reject) => {
+      listener2.on('message', message => {
         debug("got message 2");
         assert(message.payload.text == "my message 2");
-        setTimeout(function() {
-          listener2.close().then(accept, reject)
-        }, 500);
+        setTimeout(() => listener2.close().then(accept, reject), 500);
       });
-      listener2.on('error', function(err) {
-        reject(err);
-      });
+      listener2.on('error', reject);
     });
 
-    return Promise.all([
+    await Promise.all([
       listener1.resume(),
       listener2.resume()
-    ]).then(function() {
-      debug("Sending message 1");
-      return _publisher.testExchange({
-        text:           "my message 1"
-      }, {
-        testId:         'test1',
-        taskRoutingKey: 'hello.world'
-      });
-    }).then(function() {
-      // Wait for listener 1 to get message and close
-      return result1;
-    }).then(function() {
-      return _publisher.testExchange({
-        text:           "my message 2"
-      }, {
-        testId:         'test2',
-        taskRoutingKey: 'hello.world'
-      });
-    }).then(function() {
-      return result2;
-    }).then(function() {
-      return connection.close();
+    ]);
+
+    debug("Sending message 1");
+    await publisher.testExchange({
+      text:           "my message 1"
+    }, {
+      testId:         'test1',
+      taskRoutingKey: 'hello.world'
     });
+    // Wait for listener 1 to get message and close
+    await result1;
+
+    await publisher.testExchange({
+      text:           "my message 2"
+    }, {
+      testId:         'test2',
+      taskRoutingKey: 'hello.world'
+    });
+    await result2;
+
+    await connection.close();
   });
 });
