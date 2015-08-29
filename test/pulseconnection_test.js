@@ -10,6 +10,8 @@ suite('PulseListener', function() {
   var TcpProxyServer  = require('./tcpproxyserver');
   var assume          = require('assume');
 
+  const PROXY_PORT = 61321;
+
   this.timeout(60 * 1000);
 
   // Load configuration
@@ -31,7 +33,7 @@ suite('PulseListener', function() {
   let proxy = new TcpProxyServer(5672, 'pulse.mozilla.org');
   setup(() => {
     proxy.connectionCount = 0;
-    return proxy.listen(61321);
+    return proxy.listen(PROXY_PORT);
   });
 
   teardown(() => {
@@ -47,7 +49,7 @@ suite('PulseListener', function() {
   test('Create PulseConnection', function() {
     var connection = new taskcluster.PulseConnection(credentials);
     return connection.connect().then(function() {
-      return connection.close();;
+      return connection.close();
     });
   });
 
@@ -63,7 +65,8 @@ suite('PulseListener', function() {
       assert(err.code === 'ENOTFOUND');
     });
   });
-  test('Create PulseConnection (invalid host)', function() {
+
+  test('Create PulseConnection (invalid port)', function() {
     var connection = new taskcluster.PulseConnection(_.defaults({
       hostname: 'localhost:60723'
     }, credentials));
@@ -80,7 +83,7 @@ suite('PulseListener', function() {
     var connection = new taskcluster.PulseConnection(_.defaults({
       hostname: 'pulse.mozilla.org',
       protocol: 'amqp',
-      port: 5672
+      port:     5672
     }, credentials));
     return connection.connect().then(function() {
       return connection.close();
@@ -89,9 +92,9 @@ suite('PulseListener', function() {
 
   test('Create PulseConnection w. TcpTestProxy', async () => {
     var connection = new taskcluster.PulseConnection(_.defaults({
-      hostname: '127.0.0.1',
+      hostname: 'localhost',
       protocol: 'amqp',
-      port: 61321
+      port:     PROXY_PORT
     }, credentials));
 
     await connection.connect();
@@ -100,9 +103,9 @@ suite('PulseListener', function() {
 
   test('Reconnect PulseConnection', async () => {
     var connection = new taskcluster.PulseConnection(_.defaults({
-      hostname: '127.0.0.1',
+      hostname: 'localhost',
       protocol: 'amqp',
-      port: 61321
+      port:     PROXY_PORT
     }, credentials));
 
     await connection.connect();
@@ -111,7 +114,7 @@ suite('PulseListener', function() {
     base.testing.sleep(200).then(async () => {
       await proxy.close();
       await base.testing.sleep(1000);
-      await proxy.listen(61321);
+      await proxy.listen(PROXY_PORT);
     });
 
     await new Promise((accept, reject) => {
@@ -125,11 +128,11 @@ suite('PulseListener', function() {
     assert(proxy.connectionCount === 2, "Expected two connections");
   });
 
-  test('Reconnect PulseConnectio (rejected connections)', async () => {
+  test('Reconnect PulseConnection (rejected connections)', async () => {
     var connection = new taskcluster.PulseConnection(_.defaults({
-      hostname: '127.0.0.1',
+      hostname: 'localhost',
       protocol: 'amqp',
-      port: 61321
+      port:     PROXY_PORT
     }, credentials));
 
     await connection.connect();
@@ -153,51 +156,42 @@ suite('PulseListener', function() {
 
   test('Reconnect PulseConnection (max reconnects: 2)', async () => {
     var connection = new taskcluster.PulseConnection(_.defaults({
-      hostname: '127.0.0.1',
+      hostname: 'localhost',
       protocol: 'amqp',
-      port: 61321,
-      retries: 2
+      port:     PROXY_PORT,
+      retries:  2
     }, credentials));
 
     await connection.connect();
 
     assume(proxy.connectionCount).equals(1);
 
-    // Close proxy in a while then restart it 800ms laters
-    base.testing.sleep(200).then(async () => {
-      await proxy.deactivate();
-    });
+    // Close proxy after 200 ms
+    base.testing.sleep(200).then(() => proxy.deactivate());
 
-    await new Promise(function(accept, reject) {
-      connection.once('error', accept);
-    });
+    await new Promise(accept => connection.once('error', accept));
 
     await connection.close();
 
     assume(proxy.connectionCount).equals(3);
   });
 
-
   test('Reconnect PulseConnection (max reconnects: 0)', async () => {
     var connection = new taskcluster.PulseConnection(_.defaults({
-      hostname: '127.0.0.1',
+      hostname: 'localhost',
       protocol: 'amqp',
-      port: 61321,
-      retries: 0
+      port:     PROXY_PORT,
+      retries:  0
     }, credentials));
 
     await connection.connect();
 
     assume(proxy.connectionCount).equals(1);
 
-    // Close proxy in a while then restart it 800ms laters
-    base.testing.sleep(200).then(async () => {
-      await proxy.deactivate();
-    });
+    // Close proxy after 200 ms
+    base.testing.sleep(200).then(() => proxy.deactivate());
 
-    await new Promise(function(accept, reject) {
-      connection.once('error', accept);
-    });
+    await new Promise(accept => connection.once('error', accept));
 
     await connection.close();
 
@@ -206,14 +200,13 @@ suite('PulseListener', function() {
 
   test('Retry PulseConnection (max retries: 2)', async () => {
     var connection = new taskcluster.PulseConnection(_.defaults({
-      hostname: '127.0.0.1',
+      hostname: 'localhost',
       protocol: 'amqp',
-      port: 61321,
-      retries: 2
+      port:     PROXY_PORT,
+      retries:  2
     }, credentials));
 
     await proxy.deactivate();
-
 
     await connection.connect().then(() => {
       assert(false, "Should get connection");

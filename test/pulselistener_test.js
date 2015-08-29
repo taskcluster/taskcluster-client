@@ -10,6 +10,8 @@ suite('PulseListener', function() {
   var TcpProxyServer  = require('./tcpproxyserver');
   var assume          = require('assume');
 
+  const PROXY_PORT = 61321;
+
   this.timeout(60 * 1000);
 
   // Load configuration
@@ -66,7 +68,7 @@ suite('PulseListener', function() {
       exchangePrefix:         exchangePrefix
     });
     publisher = await mockEvents.connect();
-    await proxy.listen(61321);
+    await proxy.listen(PROXY_PORT);
   });
   teardown(async () => {
     await Promise.all([
@@ -304,7 +306,7 @@ suite('PulseListener', function() {
   test('named queue', async () => {
     // Create listener
     var listener = new taskcluster.PulseListener({
-      queueName:            slugid.v4(),
+      queueName:            'test-only/delete-this/' + slugid.v4(),
       credentials:          credentials
     });
     await listener.bind(mockEventsClient.testExchange({testId: 'test'}));
@@ -335,7 +337,7 @@ suite('PulseListener', function() {
   test('deletion of named queue', async () => {
     // Create listener
     var listener = new taskcluster.PulseListener({
-      queueName:            slugid.v4(),
+      queueName:            'test-only/delete-this/' + slugid.v4(),
       credentials:          credentials
     });
 
@@ -455,7 +457,7 @@ suite('PulseListener', function() {
   test('pause/resume', async () =>  {
     // Create listener
     var listener = new taskcluster.PulseListener({
-      queueName:            slugid.v4(),
+      queueName:            'test-only/delete-this/' + slugid.v4(),
       credentials:          credentials
     });
     listener.bind(mockEventsClient.testExchange({testId: 'test'}));
@@ -517,7 +519,7 @@ suite('PulseListener', function() {
   test('pause/resume with maxLength', async () => {
     // Create listener
     var listener = new taskcluster.PulseListener({
-      queueName:            slugid.v4(),
+      queueName:            'test-only/delete-this/' + slugid.v4(),
       credentials:          credentials,
       maxLength:            3
     });
@@ -629,5 +631,150 @@ suite('PulseListener', function() {
     await result2;
 
     await connection.close();
+  });
+
+
+  test('reconnect - named queue', async () =>  {
+    // Create listener
+    var listener = new taskcluster.PulseListener({
+      queueName:          'test-only/delete-this/' + slugid.v4(),
+      credentials: _.defaults({
+        hostname:         'localhost',
+        protocol:         'amqp',
+        port:             PROXY_PORT,
+      }, credentials)
+    });
+    await listener.bind(mockEventsClient.testExchange({testId: 'test'}));
+
+    var result = new Promise((accept, reject) => {
+      listener.on('message', message => {
+        assert(message.payload.text == "yay -- message");
+        assert(message.routing, "Failed to parse routing key");
+        assert(message.routing.taskRoutingKey == 'hello.world');
+        accept(message);
+      });
+      listener.on('error', reject);
+    });
+
+    await listener.resume()
+    await publisher.testExchange({
+      text:           "yay -- message"
+    }, {
+      testId:         'test',
+      taskRoutingKey: 'hello.world'
+    });
+    await result;
+
+    var gotResult2 = false;
+    var result2 = new Promise((accept, reject) => {
+      listener.on('message', message => {
+        assert(message.payload.text == "yay -- reconnected");
+        assert(message.routing, "Failed to parse routing key");
+        assert(message.routing.taskRoutingKey == 'hello.world');
+        gotResult2 = true;
+        accept(message);
+      });
+      listener.on('error', reject);
+    });
+
+    // Sleep 200 ms, deactivate proxy
+    await base.testing.sleep(200);
+    proxy.deactivate();
+
+    // Publish message should go in queue
+    await publisher.testExchange({
+      text:           "yay -- reconnected"
+    }, {
+      testId:         'test',
+      taskRoutingKey: 'hello.world'
+    });
+
+    // Sleep 500 ms, activate proxy
+    await base.testing.sleep(500);
+    assert(gotResult2 === false, "Shouldn't have to the message yet!");
+    proxy.activate();
+
+    // Expect message to arrive now
+    await result2;
+    await listener.deleteQueue();
+  });
+
+  test('reconnect - unnamed queue', async () =>  {
+    // Create listener
+    var listener = new taskcluster.PulseListener({
+      reconnect:          true,
+      credentials: _.defaults({
+        hostname:         'localhost',
+        protocol:         'amqp',
+        port:             PROXY_PORT,
+      }, credentials)
+    });
+    await listener.bind(mockEventsClient.testExchange({testId: 'test'}));
+
+    var result = new Promise((accept, reject) => {
+      listener.on('message', message => {
+        assert(message.payload.text == "yay -- message");
+        assert(message.routing, "Failed to parse routing key");
+        assert(message.routing.taskRoutingKey == 'hello.world');
+        accept(message);
+      });
+      listener.on('error', reject);
+    });
+
+    await listener.resume()
+    await publisher.testExchange({
+      text:           "yay -- message"
+    }, {
+      testId:         'test',
+      taskRoutingKey: 'hello.world'
+    });
+    await result;
+
+    // Sleep 200 ms, deactivate proxy
+    await base.testing.sleep(200);
+    proxy.deactivate();
+
+    // Sleep 200 ms, activate proxy
+    await base.testing.sleep(200);
+    proxy.activate();
+
+    var msg = slugid.v4();
+    var gotMessage = false;
+    listener.on('message', message => {
+      assert(message.payload.text == msg);
+      assert(message.routing, "Failed to parse routing key");
+      assert(message.routing.taskRoutingKey == 'hello.world');
+      gotMessage = true;
+    });
+
+    // Send message until it arrives
+    while(!gotMessage) {
+      // Publish message should go in queue
+      await publisher.testExchange({
+        text:           msg
+      }, {
+        testId:         'test',
+        taskRoutingKey: 'hello.world'
+      });
+      await base.testing.sleep(500);
+    }
+
+    await listener.close();
+  });
+
+  test('named queue deletion with reconnect: false', async () =>  {
+    var listener = new taskcluster.PulseListener({
+      queueName:          'test-only/delete-this/' + slugid.v4(),
+      reconnect:          false,
+      credentials: _.defaults({
+        hostname:         'localhost',
+        protocol:         'amqp',
+        port:             PROXY_PORT,
+      }, credentials)
+    });
+    await listener.resume();
+    // Test would crash if deleteQueue() fails, this is important as
+    // deleteQueue would reconnect if it causes and error when reconnect: true
+    await listener.deleteQueue();
   });
 });
