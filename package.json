@@ -37,6 +37,7 @@
     "mocha-phantomjs":                  "3.5.3",
     "phantomjs":                        "1.9.16",
     "babel":                            "^5.5.8",
-    "json-stable-stringify":            "^1.0.0"
+    "json-stable-stringify":            "^1.0.0",
+    "nock":                             "^7.0.2"
   }
 }
