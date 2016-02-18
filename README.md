@@ -661,6 +661,37 @@ var dateObject2 = taskcluster.fromNow("1 year", dateObject1);
 // dateObject2  = now() + 1 year, 2 days and 3 hours
 ```
 
+## ASCII-Armored Credentials
+
+The functions `armorCredential` and `unarmorCredential` convert credentials as
+used in this module (objects with properties such as `clientId` and
+`accessToken`) into text blocks that look like this:
+
+```
+-----BEGIN TASKCLUSTER CREDENTIALS-----
+Version: 1
+ClientId: tester
+Caution: Treat this data as a password!
+
+eyJjbGllbnRJZCI6InRlc3RlciIsImFjY2Vzc1Rva2VuIjoibm8tc2VjcmV0Iiwi
+Y2VydGlmaWNhdGUiOiJ7XCJ2ZXJzaW9uXCI6MSxcInNjb3Blc1wiOltcImFzc3Vt
+ZTptb3ppbGxhLWdyb3VwOnNjbV9sZXZlbF8xXCIsXCJhc3N1bWU6bW96aWxsYS1n
+cm91cDpzY21fbGV2ZWxfM1wiLFwiYXNzdW1lOm1vemlsbGEtZ3JvdXA6c2NtX2xl
+dmVsXzJcIixcImFzc3VtZTptb3ppbGxhLWdyb3VwOnRlYW1fcmVsb3BzXCIsXCJh
+c3N1bWU6bW96aWxsYS1ncm91cDp0ZWFtX21vY29cIixcImFzc3VtZTptb3ppbGxh
+LWdyb3VwOnRlYW1fdGFza2NsdXN0ZXJcIixcImFzc3VtZTptb3ppbGxpYW5zLXVz
+ZXI6ZHVzdGluXCJdLFwic3RhcnRcIjoxNDU1NTcyMDI0NzgyLFwiZXhwaXJ5XCI6
+MTQ1NTgzMjEyNDc4MixcInNlZWRcIjpcImFlNVdxcGFBU2hXZFllOHlKdnF1YVFY
+Zk8xSHQ2RlJBSzJRb2VFQVdLUVN3XCIsXCJzaWduYXR1cmVcIjpcIjlmdndSQnYr
+S0dXTmhmRTYwdUpEdVY4dnZEdzJua29IcGhudUNRc2lETkE9XCJ9In0=
+-----END TASKCLUSTER CREDENTIALS-----
+```
+
+Such text blocks are easy for users to copy/paste and send around embedded in
+other forms of communication such as encrypted emails.  The block is nothing
+more than a base64-encoded, JSON-encoded copy of the given object.  The
+clientId is provided in plain text for users' convenience.
+
 ## Generating slugids
 In node you can rely on the `slugid` module to generate slugids, but we already
 need it in `taskcluster-client` and expose the preferred slugid generation
