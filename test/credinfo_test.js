@@ -70,15 +70,6 @@ suite('taskcluster.credentialInfo', function() {
       })
   });
 
-  test("permanent, localOnly", async function() {
-    assert.deepEqual(
-      await taskcluster.credentialInformation({clientId: "clid"}, {localOnly: true}), {
-        active: true,
-        clientId: "clid",
-        type: "permanent",
-      })
-  });
-
   test("temporary", async function() {
     var start = taskcluster.fromNow("-1 hour");
     var expiry = taskcluster.fromNow("1 hour");
@@ -125,53 +116,6 @@ suite('taskcluster.credentialInfo', function() {
         scopes: scopes,
         start,
         expiry: permaExpiry,
-      })
-  });
-
-  test("temporary, localOnly", async function() {
-    var start = taskcluster.fromNow("-1 hour");
-    var expiry = taskcluster.fromNow("1 hour");
-    var scopes = ['scope1', 'scope2'];
-    var credentials = taskcluster.createTemporaryCredentials({
-      start, expiry, scopes,
-      credentials: {
-        clientId: 'issuer',
-        accessToken: 'no-secret',
-      },
-    });
-
-    assert.deepEqual(
-      await taskcluster.credentialInformation(credentials, {localOnly: true}), {
-        active: true,
-        clientId: "issuer",
-        type: "temporary",
-        scopes: scopes,
-        start,
-        expiry,
-      })
-  });
-
-  test("named temporary, localOnly", async function() {
-    var start = taskcluster.fromNow("-1 hour");
-    var expiry = taskcluster.fromNow("1 hour");
-    var scopes = ['scope1', 'scope2'];
-    var credentials = taskcluster.createTemporaryCredentials({
-      start, expiry, scopes,
-      clientId: 'my-name',
-      credentials: {
-        clientId: 'issuer',
-        accessToken: 'no-secret',
-      },
-    });
-
-    assert.deepEqual(
-      await taskcluster.credentialInformation(credentials, {localOnly: true}), {
-        active: true,
-        clientId: "my-name",
-        type: "temporary",
-        scopes: scopes,
-        start,
-        expiry,
       })
   });
 });

@@ -687,12 +687,6 @@ scopes result to determine whether to display UI elements associated with a
 particular scope, as long as the underlying API performs more reliable
 authorization checks.
 
-If `options.localOnly` is true, then no network traffic is generated.  This may
-reduce the amount of information available.  If `localOnly` is not true, then
-the credential is used to make requests to the auth service to get accurate and
-up-to-date information.  In this case, the scopes information is particularly
-unreliable and should not even be used for UI element display.
-
 ## Generating slugids
 In node you can rely on the `slugid` module to generate slugids, but we already
 need it in `taskcluster-client` and expose the preferred slugid generation
