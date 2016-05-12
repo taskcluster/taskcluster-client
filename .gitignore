@@ -2,3 +2,4 @@
 /taskcluster-client.conf.json
 /taskcluster-client.js
 /user-config.yml
+/build/
