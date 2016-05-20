@@ -6,6 +6,7 @@ suite('retry-test', function() {
   var debug           = require('debug')('test:retry_test');
   var request         = require('superagent-promise');
   var Promise         = require('promise');
+  var _               = require('lodash');
 
   // Construct API
   var api = new base.API({
@@ -94,15 +95,22 @@ suite('retry-test', function() {
 
   // Reference for test api server
   var _apiServer = null;
-  // Reference last stats record
-  var lastRecord = null;
 
-  // Create a mock authentication server
-  setup(function() {
-    lastRecord = null;
+  var monitor = null;
+  var reference = null;
+  var Server = null;
+  var server = null;
+
+  setup(async function() {
     assert(_apiServer === null,       "_apiServer must be null");
     base.testing.fakeauth.start({
       'test-client': ['auth:credentials', 'test:internal-error'],
+    });
+
+    monitor = await base.monitor({
+      project: 'tc-client',
+      credentials: {},
+      mock: true,
     });
 
     // Create server for api
@@ -114,6 +122,18 @@ suite('retry-test', function() {
       var router = api.router({
         validator:      validator,
       });
+
+      reference = api.reference({baseUrl: 'http://localhost:60526/v1'});
+      Server = taskcluster.createClient(reference);
+      server = new Server({
+        credentials: {
+          clientId:     'test-client',
+          accessToken:  'test-token'
+        },
+        baseUrl:        'http://localhost:60526/v1',
+        monitor,
+      });
+
 
       // Create application
       var app = base.app({
@@ -145,17 +165,6 @@ suite('retry-test', function() {
     });
   });
 
-  var reference = api.reference({baseUrl: 'http://localhost:60526/v1'});
-  var Server = taskcluster.createClient(reference);
-  var server = new Server({
-    credentials: {
-      clientId:     'test-client',
-      accessToken:  'test-token'
-    },
-    baseUrl:        'http://localhost:60526/v1',
-    stats: function(r) {lastRecord = r;}
-  });
-
   test("tries 6 times, delayed", function() {
     getInternalErrorCount = 0;
     setTimeout(function() {
@@ -177,28 +186,24 @@ suite('retry-test', function() {
     });
   });
 
-  test("Can succeed after 3 attempts (record stats)", function() {
+  test("Can succeed after 3 attempts (record stats)", async function() {
+    let m = await base.monitor({
+      project: 'tc-client',
+      credentials: {},
+      mock: true,
+    });
     getOccasionalInternalErrorCount = 0;
-    var record = null;
     var server2 = new Server({
       credentials: {
         clientId:     'test-client',
         accessToken:  'test-token'
       },
       baseUrl:        'http://localhost:60526/v1',
-      stats: function(r) {
-        assert(record === null, "Got two stats records!");
-        record = r;
-      }
+      monitor:        m,
     });
     return server2.getOccasionalInternalError().then(function() {
       assert(getOccasionalInternalErrorCount === 4, "expected 4 attempts");
-      assert(record, "Expected an error record for stats");
-      assert(record.duration > 20, "Error in record.duration");
-      assert(record.retries === 3, "Error in record.retries");
-      assert(record.success === 1, "Error in record.success");
-      assert(record.resolution === 'http-200', "Error in record.resolution");
-      assert(record.baseUrl, "Error in record.baseUrl");
+      assert(_.keys(m.counts).length > 0);
     });
   });
 
@@ -259,10 +264,7 @@ suite('retry-test', function() {
     }, function(err) {
       assert(err.code === 'ECONNRESET', "Expect ECONNRESET error");
       assert(getConnectionErrorCount === 6, "expected 6 retries");
-      assert(lastRecord, "Expected a stats record");
-      assert(lastRecord.resolution === 'ECONNRESET', "Expected ECONNRESET");
-      assert(lastRecord.duration > 0, "Expected a non-zero duration");
-      assert(lastRecord.retries > 0, "Expected a non-zero duration");
+      assert(_.keys(monitor.counts).length > 0);
     });
   });
 });
