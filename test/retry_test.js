@@ -92,8 +92,6 @@ suite('retry-test', function() {
   });
 
 
-  // Reference to mock authentication server
-  var _mockAuthServer = null;
   // Reference for test api server
   var _apiServer = null;
   // Reference last stats record
@@ -102,50 +100,41 @@ suite('retry-test', function() {
   // Create a mock authentication server
   setup(function() {
     lastRecord = null;
-    assert(_mockAuthServer === null,  "_mockAuthServer must be null");
     assert(_apiServer === null,       "_apiServer must be null");
-    return base.testing.createMockAuthServer({
-      port:     60243,
-      clients: [
-        {
-          clientId:     'test-client',
-          accessToken:  'test-token',
-          scopes:       ['auth:credentials', 'test:internal-error'],
-          expires:      new Date(2092, 0, 0, 0, 0, 0, 0)
-        }
-      ]
-    }).then(function(server) {
-      _mockAuthServer = server;
-    }).then(function() {
-      // Create server for api
-      return base.validator().then(function(validator) {
-        // Create router
-        var router = api.router({
-          validator:      validator,
-          authBaseUrl:    'http://localhost:60243/v1'
-        });
+    base.testing.fakeauth.start({
+      'test-client': ['auth:credentials', 'test:internal-error'],
+    });
 
-        // Create application
-        var app = base.app({
-          port:         60526,
-          env:          'development',
-          forceSSL:     false,
-          trustProxy:   false
-        });
+    // Create server for api
+    return base.validator({
+      folder:         path.join(__dirname, 'schemas'),
+      baseUrl:        'http://localhost:4321/',
+    }).then(function(validator) {
+      // Create router
+      var router = api.router({
+        validator:      validator,
+      });
 
-        // Use router
-        app.use('/v1', router);
+      // Create application
+      var app = base.app({
+        port:         60526,
+        env:          'development',
+        forceSSL:     false,
+        trustProxy:   false
+      });
 
-        return app.createServer().then(function(server) {
-          _apiServer = server;
-        });
+      // Use router
+      app.use('/v1', router);
+
+      return app.createServer().then(function(server) {
+        _apiServer = server;
       });
     });
   });
 
   // Close server
   teardown(function() {
-    assert(_mockAuthServer, "_mockAuthServer doesn't exist");
+    base.testing.fakeauth.stop();
     assert(_apiServer,      "_apiServer doesn't exist");
     if (taskcluster.agents.http.destroy) {
       taskcluster.agents.http.destroy();
@@ -153,9 +142,6 @@ suite('retry-test', function() {
     }
     return _apiServer.terminate().then(function() {
       _apiServer = null;
-      return _mockAuthServer.terminate().then(function() {
-        _mockAuthServer = null;
-      });
     });
   });
 
