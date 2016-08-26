@@ -8,14 +8,14 @@
     <script src="../node_modules/mocha/mocha.js"></script>
     <script>
       mocha.ui('tdd');
-      mocha.reporter('html');
+      mocha.bail(true);
       function assert(assertion, message) {
         if (!assertion) throw new Error(message || "Assertion failed");
       };
     </script>
-    <script src="../taskcluster-client.js"></script>
+    <script src="../build/browser.js"></script>
     <script>
-    suite("client (browserify)", function() {
+    suite("client (browser)", function() {
       this.timeout(function() {}, 30 * 1000);
 
       var client = null;
@@ -150,7 +150,7 @@
       });
     });
 
-    suite("WebListener (browserify)", function() {
+    suite("WebListener (browser)", function() {
       this.timeout(30 * 1000);
 
       test('connect and close WebListener', function() {
@@ -170,11 +170,14 @@
           }));
         }).then(function() {
           return listener.close();
+        })
+        .catch(function(err) {
+          console.log(err);
         });
       });
     });
 
-    suite("utilities (browserify)", function() {
+    suite("utilities (browser)", function() {
       this.timeout(30 * 1000);
 
       test('fromNow()', function() {

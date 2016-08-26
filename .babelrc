@@ -1,3 +1,9 @@
 {
-  "stage": 1
+  "plugins": [
+    ["transform-runtime", { "polyfill": true, "regenerator": true }]
+  ],
+  "presets": [
+    "es2015",
+    "stage-0"
+  ]
 }

@@ -1,6 +1,5 @@
 suite('PulseListener', function() {
   var taskcluster     = require('../');
-  var Promise         = require('promise');
   var assert          = require('assert');
   var mockEvents      = require('./mockevents');
   var slugid          = require('slugid');
@@ -8,7 +7,7 @@ suite('PulseListener', function() {
   var base            = require('taskcluster-base');
 
   // Load configuration
-  var cfg = base.config();
+  var cfg = base.config({});
 
   if(!cfg.pulse.password) {
     console.error("Skipping PulseListener tests due to missing config");

@@ -1,4 +1,4 @@
-module.exports = {
+{
   "Auth": {
     "reference": {
       "$schema": "http://schemas.taskcluster.net/base/v1/api-reference.json#",
@@ -3357,4 +3357,4 @@ module.exports = {
     },
     "referenceUrl": "http://references.taskcluster.net/taskcluster-treeherder/v1/exchanges.json"
   }
-};
+}

@@ -4,8 +4,6 @@ suite('retry-test', function() {
   var assert          = require('assert');
   var path            = require('path');
   var debug           = require('debug')('test:retry_test');
-  var request         = require('superagent-promise');
-  var Promise         = require('promise');
   var _               = require('lodash');
 
   // Construct API
