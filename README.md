@@ -1,23 +1,23 @@
 # TaskCluster Client [![Build Status](https://travis-ci.org/taskcluster/taskcluster-client.svg?branch=master)](https://travis-ci.org/taskcluster/taskcluster-client)
-_A taskcluster client library for node.js._
+_A taskcluster client library for Node.js._
 
 This client library is generated from the auto-generated API reference.
 You can create a Client class from a JSON reference object at runtime using
-`taskcluster.createClient(reference)`. But there is also a set of builtin
+`taskcluster.createClient(reference)`. There is also a set of built-in
 references from which Client classes are already constructed.
 
-## Calling API End-Points
-To invoke an API end-point instantiate a taskcluster Client class, these are
-classes can be created from a JSON reference object, but a number of them are
-also built-in to this library. In the following example we instantiate an
-instance of the `Queue` Client class and use to to create a task.
+## Calling API Endpoints
+To invoke an API endpoint, instantiate a taskcluster Client class. These are
+classes that can be created from a JSON reference object, and a number of them are
+also built in to this library. In the following example we instantiate an
+instance of the `Queue` Client class and use it to create a task.
 
 ```js
 var taskcluster = require('taskcluster-client');
 
 // Instantiate the Queue Client class
 var queue = new taskcluster.Queue({
-  timeout: 30 * 1000, // timeout for _each_ invidual http request
+  timeout: 30 * 1000, // timeout for _each_ individual http request
 
   // By default we share a global agent if you specify your instance
   // will have it's own agent with the given options...
@@ -105,10 +105,10 @@ listener.bind(queueEvents.taskCompleted(RawRoutingPattern);
 ```
 
 ### Web Listener
-Listening to  events can be done using a `WebListener`. All steps are identical to using `PulseListener` except in initializing the listener. While PulseListener opens a TCP socket
+Listening to events can be done using a `WebListener`. All steps are identical to using
+`PulseListener` except in initializing the listener. While PulseListener opens a TCP socket
 to `pulse.mozilla.org` directly, a WebListener will connect to `events.taskcluster.net`
-using a websocket. In addition, `PulseListener` cannot be used on
-the browser.
+using a websocket. In addition, `PulseListener` cannot be used in the browser.
 
 ```javascript
 var listener = new taskcluster.WebListener({
@@ -149,287 +149,11 @@ separate reference files. For this reason they also have separate Client
 classes, even if they are from the same component.
 
 ## Documentation
-The set of API entries listed below is generated from the built-in references.
-Detailed documentation with description, payload and result format details is
+
+Documentation for the set of API entries is generated from the built-in references,
+and is listed in the [`docs` directory](/docs) of this repository.
+Detailed documentation with description, payload, and result format details is
 available on [docs.taskcluster.net](http://docs.taskcluster.net).
-
-On the [documentation site](http://docs.taskcluster.net) entries often have a
-_signature_, you'll find that it matches the signatures below. Notice that all
-the methods returns a promise. A method with `: void` also returns a promise,
-that either resolves without giving a value or rejects with an error.
-
-<!-- START OF GENERATED DOCS -->
-
-### Methods in `taskcluster.Auth`
-```js
-// Create Auth client instance with default baseUrl:
-//  - https://auth.taskcluster.net/v1
-var auth = new taskcluster.Auth(options);
-```
- * `auth.listClients([options]) : result`
- * `auth.client(clientId) : result`
- * `auth.createClient(clientId, payload) : result`
- * `auth.resetAccessToken(clientId) : result`
- * `auth.updateClient(clientId, payload) : result`
- * `auth.enableClient(clientId) : result`
- * `auth.disableClient(clientId) : result`
- * `auth.deleteClient(clientId) : void`
- * `auth.listRoles() : result`
- * `auth.role(roleId) : result`
- * `auth.createRole(roleId, payload) : result`
- * `auth.updateRole(roleId, payload) : result`
- * `auth.deleteRole(roleId) : void`
- * `auth.expandScopes(payload) : result`
- * `auth.currentScopes() : result`
- * `auth.awsS3Credentials(level, bucket, prefix) : result`
- * `auth.azureTableSAS(account, table) : result`
- * `auth.sentryDSN(project) : result`
- * `auth.statsumToken(project) : result`
- * `auth.authenticateHawk(payload) : result`
- * `auth.testAuthenticate(payload) : result`
- * `auth.testAuthenticateGet() : result`
- * `auth.ping() : void`
-
-### Methods in `taskcluster.AwsProvisioner`
-```js
-// Create AwsProvisioner client instance with default baseUrl:
-//  - https://aws-provisioner.taskcluster.net/v1
-var awsProvisioner = new taskcluster.AwsProvisioner(options);
-```
- * `awsProvisioner.listWorkerTypeSummaries() : result`
- * `awsProvisioner.createWorkerType(workerType, payload) : result`
- * `awsProvisioner.updateWorkerType(workerType, payload) : result`
- * `awsProvisioner.workerTypeLastModified(workerType) : result`
- * `awsProvisioner.workerType(workerType) : result`
- * `awsProvisioner.removeWorkerType(workerType) : void`
- * `awsProvisioner.listWorkerTypes() : result`
- * `awsProvisioner.createAmiSet(id, payload) : void`
- * `awsProvisioner.amiSet(id) : result`
- * `awsProvisioner.updateAmiSet(id, payload) : result`
- * `awsProvisioner.listAmiSets() : result`
- * `awsProvisioner.removeAmiSet(id) : void`
- * `awsProvisioner.createSecret(token, payload) : void`
- * `awsProvisioner.getSecret(token) : result`
- * `awsProvisioner.instanceStarted(instanceId, token) : void`
- * `awsProvisioner.removeSecret(token) : void`
- * `awsProvisioner.getLaunchSpecs(workerType) : result`
- * `awsProvisioner.state(workerType) : void`
- * `awsProvisioner.ping() : void`
- * `awsProvisioner.backendStatus() : result`
- * `awsProvisioner.terminateAllInstancesOfWorkerType(workerType) : void`
- * `awsProvisioner.shutdownEverySingleEc2InstanceManagedByThisProvisioner() : void`
-
-### Methods in `taskcluster.Github`
-```js
-// Create Github client instance with default baseUrl:
-//  - https://github.taskcluster.net/v1
-var github = new taskcluster.Github(options);
-```
- * `github.githubWebHookConsumer() : void`
- * `github.builds([options]) : result`
- * `github.ping() : void`
-
-### Methods in `taskcluster.Hooks`
-```js
-// Create Hooks client instance with default baseUrl:
-//  - https://hooks.taskcluster.net/v1
-var hooks = new taskcluster.Hooks(options);
-```
- * `hooks.listHookGroups() : result`
- * `hooks.listHooks(hookGroupId) : result`
- * `hooks.hook(hookGroupId, hookId) : result`
- * `hooks.getHookStatus(hookGroupId, hookId) : result`
- * `hooks.getHookSchedule(hookGroupId, hookId) : result`
- * `hooks.createHook(hookGroupId, hookId, payload) : result`
- * `hooks.updateHook(hookGroupId, hookId, payload) : result`
- * `hooks.removeHook(hookGroupId, hookId) : void`
- * `hooks.triggerHook(hookGroupId, hookId, payload) : result`
-
-### Methods in `taskcluster.Index`
-```js
-// Create Index client instance with default baseUrl:
-//  - https://index.taskcluster.net/v1
-var index = new taskcluster.Index(options);
-```
- * `index.findTask(namespace) : result`
- * `index.listNamespaces(namespace, payload) : result`
- * `index.listTasks(namespace, payload) : result`
- * `index.insertTask(namespace, payload) : result`
- * `index.findArtifactFromTask(namespace, name) : void`
- * `index.ping() : void`
-
-### Methods in `taskcluster.Login`
-```js
-// Create Login client instance with default baseUrl:
-//  - https://login.taskcluster.net/v1
-var login = new taskcluster.Login(options);
-```
- * `login.credentialsFromPersonaAssertion(payload) : result`
- * `login.ping() : void`
-
-### Methods in `taskcluster.Notify`
-```js
-// Create Notify client instance with default baseUrl:
-//  - https://notify.taskcluster.net/v1
-var notify = new taskcluster.Notify(options);
-```
- * `notify.email(payload) : void`
- * `notify.pulse(payload) : void`
- * `notify.irc(payload) : void`
- * `notify.ping() : void`
-
-### Methods in `taskcluster.Pulse`
-```js
-// Create Pulse client instance with default baseUrl:
-//  - https://pulse.taskcluster.net/v1
-var pulse = new taskcluster.Pulse(options);
-```
- * `pulse.ping() : void`
- * `pulse.overview() : result`
- * `pulse.namespace(namespace, payload) : void`
-
-### Methods in `taskcluster.PurgeCache`
-```js
-// Create PurgeCache client instance with default baseUrl:
-//  - https://purge-cache.taskcluster.net/v1
-var purgeCache = new taskcluster.PurgeCache(options);
-```
- * `purgeCache.purgeCache(provisionerId, workerType, payload) : void`
- * `purgeCache.allPurgeRequests([options]) : result`
- * `purgeCache.purgeRequests(provisionerId, workerType, [options]) : result`
- * `purgeCache.ping() : void`
-
-### Methods in `taskcluster.Queue`
-```js
-// Create Queue client instance with default baseUrl:
-//  - https://queue.taskcluster.net/v1
-var queue = new taskcluster.Queue(options);
-```
- * `queue.task(taskId) : result`
- * `queue.status(taskId) : result`
- * `queue.listTaskGroup(taskGroupId, [options]) : result`
- * `queue.listDependentTasks(taskId, [options]) : result`
- * `queue.createTask(taskId, payload) : result`
- * `queue.defineTask(taskId, payload) : result`
- * `queue.scheduleTask(taskId) : result`
- * `queue.rerunTask(taskId) : result`
- * `queue.cancelTask(taskId) : result`
- * `queue.pollTaskUrls(provisionerId, workerType) : result`
- * `queue.claimWork(provisionerId, workerType, payload) : result`
- * `queue.claimTask(taskId, runId, payload) : result`
- * `queue.reclaimTask(taskId, runId) : result`
- * `queue.reportCompleted(taskId, runId) : result`
- * `queue.reportFailed(taskId, runId) : result`
- * `queue.reportException(taskId, runId, payload) : result`
- * `queue.createArtifact(taskId, runId, name, payload) : result`
- * `queue.getArtifact(taskId, runId, name) : void`
- * `queue.getLatestArtifact(taskId, name) : void`
- * `queue.listArtifacts(taskId, runId, [options]) : result`
- * `queue.listLatestArtifacts(taskId, [options]) : result`
- * `queue.pendingTasks(provisionerId, workerType) : result`
- * `queue.ping() : void`
-
-### Methods in `taskcluster.Scheduler`
-```js
-// Create Scheduler client instance with default baseUrl:
-//  - https://scheduler.taskcluster.net/v1
-var scheduler = new taskcluster.Scheduler(options);
-```
- * `scheduler.createTaskGraph(taskGraphId, payload) : result`
- * `scheduler.extendTaskGraph(taskGraphId, payload) : result`
- * `scheduler.status(taskGraphId) : result`
- * `scheduler.info(taskGraphId) : result`
- * `scheduler.inspect(taskGraphId) : result`
- * `scheduler.inspectTask(taskGraphId, taskId) : result`
- * `scheduler.ping() : void`
-
-### Methods in `taskcluster.Secrets`
-```js
-// Create Secrets client instance with default baseUrl:
-//  - https://secrets.taskcluster.net/v1
-var secrets = new taskcluster.Secrets(options);
-```
- * `secrets.set(name, payload) : void`
- * `secrets.remove(name) : void`
- * `secrets.get(name) : result`
- * `secrets.list() : result`
- * `secrets.ping() : void`
-
-### Exchanges in `taskcluster.AuthEvents`
-```js
-// Create AuthEvents client instance with default exchangePrefix:
-//  - exchange/taskcluster-auth/v1/
-var authEvents = new taskcluster.AuthEvents(options);
-```
- * `authEvents.clientCreated(routingKeyPattern) : binding-info`
- * `authEvents.clientUpdated(routingKeyPattern) : binding-info`
- * `authEvents.clientDeleted(routingKeyPattern) : binding-info`
- * `authEvents.roleCreated(routingKeyPattern) : binding-info`
- * `authEvents.roleUpdated(routingKeyPattern) : binding-info`
- * `authEvents.roleDeleted(routingKeyPattern) : binding-info`
-
-### Exchanges in `taskcluster.AwsProvisionerEvents`
-```js
-// Create AwsProvisionerEvents client instance with default exchangePrefix:
-//  - exchange/taskcluster-aws-provisioner/v1/
-var awsProvisionerEvents = new taskcluster.AwsProvisionerEvents(options);
-```
- * `awsProvisionerEvents.workerTypeCreated(routingKeyPattern) : binding-info`
- * `awsProvisionerEvents.workerTypeUpdated(routingKeyPattern) : binding-info`
- * `awsProvisionerEvents.workerTypeRemoved(routingKeyPattern) : binding-info`
-
-### Exchanges in `taskcluster.GithubEvents`
-```js
-// Create GithubEvents client instance with default exchangePrefix:
-//  - exchange/taskcluster-github/v1/
-var githubEvents = new taskcluster.GithubEvents(options);
-```
- * `githubEvents.pullRequest(routingKeyPattern) : binding-info`
- * `githubEvents.push(routingKeyPattern) : binding-info`
-
-### Exchanges in `taskcluster.PurgeCacheEvents`
-```js
-// Create PurgeCacheEvents client instance with default exchangePrefix:
-//  - exchange/taskcluster-purge-cache/v1/
-var purgeCacheEvents = new taskcluster.PurgeCacheEvents(options);
-```
- * `purgeCacheEvents.purgeCache(routingKeyPattern) : binding-info`
-
-### Exchanges in `taskcluster.QueueEvents`
-```js
-// Create QueueEvents client instance with default exchangePrefix:
-//  - exchange/taskcluster-queue/v1/
-var queueEvents = new taskcluster.QueueEvents(options);
-```
- * `queueEvents.taskDefined(routingKeyPattern) : binding-info`
- * `queueEvents.taskPending(routingKeyPattern) : binding-info`
- * `queueEvents.taskRunning(routingKeyPattern) : binding-info`
- * `queueEvents.artifactCreated(routingKeyPattern) : binding-info`
- * `queueEvents.taskCompleted(routingKeyPattern) : binding-info`
- * `queueEvents.taskFailed(routingKeyPattern) : binding-info`
- * `queueEvents.taskException(routingKeyPattern) : binding-info`
- * `queueEvents.taskGroupResolved(routingKeyPattern) : binding-info`
-
-### Exchanges in `taskcluster.SchedulerEvents`
-```js
-// Create SchedulerEvents client instance with default exchangePrefix:
-//  - exchange/taskcluster-scheduler/v1/
-var schedulerEvents = new taskcluster.SchedulerEvents(options);
-```
- * `schedulerEvents.taskGraphRunning(routingKeyPattern) : binding-info`
- * `schedulerEvents.taskGraphExtended(routingKeyPattern) : binding-info`
- * `schedulerEvents.taskGraphBlocked(routingKeyPattern) : binding-info`
- * `schedulerEvents.taskGraphFinished(routingKeyPattern) : binding-info`
-
-### Exchanges in `taskcluster.TreeherderEvents`
-```js
-// Create TreeherderEvents client instance with default exchangePrefix:
-//  - exchange/taskcluster-treeherder/v1/
-var treeherderEvents = new taskcluster.TreeherderEvents(options);
-```
- * `treeherderEvents.jobs(routingKeyPattern) : binding-info`
-
-<!-- END OF GENERATED DOCS -->
 
 ## Providing Options
 Some API end-points may take query-string, this is indicated in the signature
@@ -794,18 +518,18 @@ var taskId = taskcluster.slugid();
 
 The generates _nice_ random slugids, refer to slugid module for further details.
 
-## Using `taskcluster-client` in a Browser
-Running the script `bin/update-apis.js browserify` will generate
-`taskcluster-client.js` using browserify. This does not contain any listener,
-but all the API logic and references is present. To get AMQP events in the
-browser use
-[events.taskcluster.net](https://github.com/taskcluster/taskcluster-events).
-
-## Updating Builtin APIs
+## Updating Built-In APIs
 When releasing a new version of the `taskcluster-client` library, we should
-always update the builtin references using `bin/update-apis.js update`. This
-maintenance script can be used to list, show, add, remove and update builtin
-API definitions.
+always update the built in references using `npm run update`. There are also
+several other scripts for maintenance:
 
-##License
+- `npm run update`: Pull the latest API manifest, re-build the package, and update all documentation.
+- `npm run build`: Re-build both the Node.js and browser files.
+- `npm run docs`: Generate the API documentation Markdown files from the API reference file.
+- `npm run fetch`: Pull the latest API manifest from the schema endpoint and re-create the API reference file.
+- `npm run list`: Print a list of Client APIs built into taskcluster-client baesd on the API reference file.
+- `npm run show <client>`: Print the detailed schema information for a particular Client, e.g. `npm run show Auth`.
+- `npm test`: Run the test suites for Node.js and in-browser.
+
+## License
 The taskcluster client library is released on [MPL 2.0](http://mozilla.org/MPL/2.0/).

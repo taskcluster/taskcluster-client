@@ -1,23 +1,20 @@
 suite('client credential handling', function() {
   var base            = require('taskcluster-base');
-  var taskcluster     = require('../');
+  var taskcluster     = require('../build/index.bundle');
   var assert          = require('assert');
   var path            = require('path');
   var debug           = require('debug')('test:client');
-  var request         = require('superagent-promise');
-  var _               = require('lodash');
+  var request         = require('got');
 
   // This suite exercises the credential-handling functionality of the client
   // against a the auth service's testAuthenticate endpoint.
 
-  let client = function(options) {
-    options = _.defaults({}, options || {}, {
-      credentials: {},
-    });
-    options.credentials = _.defaults({}, options.credentials, {
+  let client = function(options = {credentials: {}}) {
+    options.credentials = {
       clientId: 'tester',
       accessToken: 'no-secret',
-    });
+      ...options.credentials,
+    };
     return new taskcluster.Auth(options);
   };
 
@@ -233,14 +230,14 @@ suite('client credential handling', function() {
   });
 
   let getJson = async function(url) {
-    let res = await request.get(url).end();
+    let res = await request(url, { json: true });
     return res.body;
   };
 
   test('buildSignedUrl', async () => {
     let cl = client();
     let url = cl.buildSignedUrl(cl.testAuthenticateGet);
-    assert((await request.get(url).end()).ok);
+    assert((await request(url)).statusCode === 200);
   });
 
 
@@ -266,7 +263,7 @@ suite('client credential handling', function() {
       authorizedScopes: ['test:get'],  // no test:authenticate-get
     })
     let url = cl.buildSignedUrl(cl.testAuthenticateGet);
-    await request.get(url).end().then(() => assert(false), err => {
+    await request(url).then(() => assert(false), err => {
       assert(err.response.statusCode === 403);
     });
   });
@@ -303,7 +300,7 @@ suite('client credential handling', function() {
     let url = cl.buildSignedUrl(cl.testAuthenticateGet, {
       expiration: 600,
     });
-    assert((await request.get(url).end()).ok);
+    assert((await request(url)).statusCode === 200);
   });
 
   test('buildSignedUrl with temporary credentials (expired)', async () => {
@@ -321,7 +318,7 @@ suite('client credential handling', function() {
     let url = cl.buildSignedUrl(cl.testAuthenticateGet, {
       expiration: -600, // This seems to work, not sure how long it will work...
     });
-    await request.get(url).end().then(() => assert(false), err => {
+    await request(url).then(() => assert(false), err => {
       assert(err.response.statusCode === 401);
     });
   });
@@ -346,35 +343,24 @@ suite('client credential handling', function() {
   suite('Get with credentials from environment variables', async () => {
     let ACCESS_TOKEN  = process.env.TASKCLUSTER_ACCESS_TOKEN;
     let CLIENT_ID     = process.env.TASKCLUSTER_CLIENT_ID;
-
-    // Ensure the client is removed from the require cache so it can be
-    // reloaded from scratch.
-    let cleanClient = null;
+    
     setup(() => {
       process.env.TASKCLUSTER_CLIENT_ID    = 'tester';
       process.env.TASKCLUSTER_ACCESS_TOKEN = 'no-secret';
-
-      // This is an absolute path to the client.js file. If this file is moved
-      // then this obviously will break.  The intent is to re-require the file
-      // with the environment variables in place, since they are used at
-      // load time
-      let clientPath = path.resolve(__dirname, '..', 'lib', 'client.js');
-      delete require.cache[clientPath];
-      cleanClient = require(clientPath);
     });
 
     // Be a good citizen and cleanup after this test so we don't leak state.
     teardown(() => {
-      if (cleanClient.agents.http.destroy) {
-        cleanClient.agents.http.destroy();
-        cleanClient.agents.https.destroy();
+      if (taskcluster.agents.http.destroy) {
+        taskcluster.agents.http.destroy();
+        taskcluster.agents.https.destroy();
       }
       process.env.TASKCLUSTER_CLIENT_ID    = CLIENT_ID;
       process.env.TASKCLUSTER_ACCESS_TOKEN = ACCESS_TOKEN;
     });
 
     test('implicit credentials', async () => {
-      let client = new cleanClient.Auth();
+      let client = new taskcluster.Auth();
       assert.deepEqual(
         await client.testAuthenticate({
           clientScopes: [],

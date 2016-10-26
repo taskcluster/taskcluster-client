@@ -1,12 +1,11 @@
 suite('retry-test', function() {
   var base            = require('taskcluster-base');
-  var taskcluster     = require('../');
+  var taskcluster     = require('../build/index.bundle');
   var assert          = require('assert');
   var path            = require('path');
   var debug           = require('debug')('test:retry_test');
-  var request         = require('superagent-promise');
-  var Promise         = require('promise');
-  var _               = require('lodash');
+
+  this.timeout(90 * 1000);
 
   // Construct API
   var api = new base.API({
@@ -203,7 +202,7 @@ suite('retry-test', function() {
     });
     return server2.getOccasionalInternalError().then(function() {
       assert(getOccasionalInternalErrorCount === 4, "expected 4 attempts");
-      assert(_.keys(m.counts).length > 0);
+      assert(Object.keys(m.counts).length > 0);
     });
   });
 
@@ -264,7 +263,7 @@ suite('retry-test', function() {
     }, function(err) {
       assert(err.code === 'ECONNRESET', "Expect ECONNRESET error");
       assert(getConnectionErrorCount === 6, "expected 6 retries");
-      assert(_.keys(monitor.counts).length > 0);
+      assert(Object.keys(monitor.counts).length > 0);
     });
   });
 });

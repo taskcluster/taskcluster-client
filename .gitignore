@@ -1,4 +1,4 @@
-/node_modules/
-/taskcluster-client.conf.json
-/taskcluster-client.js
-/user-config.yml
+node_modules
+taskcluster-client.conf.json
+user-config.yml
+build

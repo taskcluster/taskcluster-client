@@ -1,5 +1,5 @@
 suite('taskcluster.credentialInfo', function() {
-  var taskcluster     = require('../');
+  var taskcluster     = require('../build/index.bundle');
   var assert          = require('assert');
   var nock            = require('nock');
 
@@ -101,6 +101,7 @@ suite('taskcluster.credentialInfo', function() {
   test("temporary, expires after issuer", async function() {
     var start = taskcluster.fromNow("-1 hour");
     var expiry = taskcluster.fromNow("2 days");
+    var permaExpiry = taskcluster.fromNow("1 day");
     var scopes = ['scope1', 'scope2'];
     var credentials = taskcluster.createTemporaryCredentials({
       start, expiry, scopes,
@@ -110,7 +111,6 @@ suite('taskcluster.credentialInfo', function() {
       },
     });
 
-    var permaExpiry = taskcluster.fromNow("1 day");
     setupNocks({expires: permaExpiry.toJSON(), scopes});
     assert.deepEqual(
       await taskcluster.credentialInformation(credentials), {

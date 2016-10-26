@@ -1,11 +1,9 @@
 suite('client requests/responses', function() {
   var base            = require('taskcluster-base');
-  var taskcluster     = require('../');
+  var taskcluster     = require('../build/index.bundle');
   var assert          = require('assert');
   var path            = require('path');
   var debug           = require('debug')('test:client');
-  var request         = require('superagent-promise');
-  var _               = require('lodash');
   var nock            = require('nock');
 
   // This suite exercises the request and response functionality of
@@ -328,7 +326,7 @@ suite('client requests/responses', function() {
     nock('https://fake.taskcluster.net').get('/v1/get-test')
       .reply(200, {})
     await client.get();
-    assert(_.keys(monitor.counts).length > 0);
+    assert(Object.keys(monitor.counts).length > 0);
   });
 
   test('Report stats (unauthorized)', async () => {
@@ -348,7 +346,7 @@ suite('client requests/responses', function() {
     nock('https://fake.taskcluster.net').get('/v1/get-test')
       .reply(401, authFailedError);
     await expectError(client.get(), 'AuthorizationFailed');
-    assert(_.keys(monitor.counts).length > 0);
+    assert(Object.keys(monitor.counts).length > 0);
   });
 
   let assertBewitUrl = function(url, expected) {

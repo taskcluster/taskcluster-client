@@ -1,17 +1,16 @@
 suite('WebListener', function() {
-  var Promise     = require('promise');
   var assert      = require('assert');
   var slugid      = require('slugid');
-  var taskcluster = require('../');
+  var taskcluster = require('../build/index.bundle');
   var debug       = require('debug')('test:WebListener');
   var base        = require('taskcluster-base');
   var mockEvents  = require('./mockevents');
 
   // Load configuration
-  var cfg = base.config();
+  var cfg = base.config({});
 
   if(!cfg.pulse.password) {
-    console.log("Skipping PulseListener tests due to missing config");
+    console.log("Skipping WebListener tests due to missing config");
     this.pending = true;
   }
 
