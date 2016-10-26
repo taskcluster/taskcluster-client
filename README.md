@@ -105,10 +105,10 @@ listener.bind(queueEvents.taskCompleted(RawRoutingPattern);
 ```
 
 ### Web Listener
-Listening to  events can be done using a `WebListener`. All steps are identical to using `PulseListener` except in initializing the listener. While PulseListener opens a TCP socket
+Listening to events can be done using a `WebListener`. All steps are identical to using
+`PulseListener` except in initializing the listener. While PulseListener opens a TCP socket
 to `pulse.mozilla.org` directly, a WebListener will connect to `events.taskcluster.net`
-using a websocket. In addition, `PulseListener` cannot be used on
-the browser.
+using a websocket. In addition, `PulseListener` cannot be used in the browser.
 
 ```javascript
 var listener = new taskcluster.WebListener({
@@ -518,13 +518,6 @@ var taskId = taskcluster.slugid();
 
 The generates _nice_ random slugids, refer to slugid module for further details.
 
-## Using `taskcluster-client` in a Browser
-Running the script `npm run build:browser` will generate
-`build/browser.js` using Webpack. This does not contain any listener,
-but all the API logic and references are present. To get AMQP events in the
-browser use
-[events.taskcluster.net](https://github.com/taskcluster/taskcluster-events).
-
 ## Updating Built-In APIs
 When releasing a new version of the `taskcluster-client` library, we should
 always update the built in references using `npm run update`. There are also
@@ -532,15 +525,11 @@ several other scripts for maintenance:
 
 - `npm run update`: Pull the latest API manifest, re-build the package, and update all documentation.
 - `npm run build`: Re-build both the Node.js and browser files.
-- `npm run build:browser`: Re-build the browser bundle from the API reference file.
-- `npm run build:node`: Re-build the Node.js package entry from the API reference file.
 - `npm run docs`: Generate the API documentation Markdown files from the API reference file.
 - `npm run fetch`: Pull the latest API manifest from the schema endpoint and re-create the API reference file.
 - `npm run list`: Print a list of Client APIs built into taskcluster-client baesd on the API reference file.
 - `npm run show <client>`: Print the detailed schema information for a particular Client, e.g. `npm run show Auth`.
 - `npm test`: Run the test suites for Node.js and in-browser.
-- `npm run test:browser`: Run the in-browser test suite.
-- `npm run test:node`: Run the Node.js test suite.
 
-##License
+## License
 The taskcluster client library is released on [MPL 2.0](http://mozilla.org/MPL/2.0/).

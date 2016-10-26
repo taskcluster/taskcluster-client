@@ -1,6 +1,6 @@
-import { EventEmitter } from 'events';
+import {EventEmitter} from 'events';
 import PulseConnection from './pulseconnection';
-import { pulse as debug } from './debug';
+import {pulse as debug} from './debug';
 import assert from 'assert';
 import slugid from 'slugid';
 
@@ -39,7 +39,7 @@ export default class PulseListener extends EventEmitter {
       prefetch: 5,
       queueName: null,
       maxLength: null,
-      ...options
+      ...options,
     };
 
     this._connection = options.connection || null;
@@ -52,7 +52,7 @@ export default class PulseListener extends EventEmitter {
     }
   }
 
-  bindToQueue({ exchange, routingKeyPattern }) {
+  bindToQueue({exchange, routingKeyPattern}) {
     debug(`Binding ${this._queueName || 'exclusive queue'} to ${exchange} with pattern "${routingKeyPattern}"`);
 
     return this._channel.bindQueue(this._queueName, exchange, routingKeyPattern);
@@ -94,7 +94,7 @@ export default class PulseListener extends EventEmitter {
     }
 
     // Create AMQP connection and channel
-    const { prefetch, queueName, maxLength } = this._options;
+    const {prefetch, queueName, maxLength} = this._options;
     const conn = await this._connection.connect();
     const channel = await conn.createConfirmChannel();
 
@@ -117,7 +117,7 @@ export default class PulseListener extends EventEmitter {
       exclusive,
       durable: !exclusive,
       autoDelete: exclusive,
-      maxLength
+      maxLength,
     };
 
     await channel.assertQueue(this._queueName, opts);
@@ -159,7 +159,7 @@ export default class PulseListener extends EventEmitter {
       redelivered: msg.fields.redelivered,
       routes: !cc ? [] : cc
         .filter(route => /^route\.(.*)$/.test(route))
-        .map(route => /^route\.(.*)$/.exec(route)[1])
+        .map(route => /^route\.(.*)$/.exec(route)[1]),
     };
     const routingKeyReference = this._bindings
       .reduce((acc, binding) => binding.exchange === message.exchange && binding.routingKeyReference ?
@@ -216,7 +216,7 @@ export default class PulseListener extends EventEmitter {
         // In short people can assume this is present in most cases, and if they
         // assume this we get the error at a level where they can handle it.
         debug('Failed to parse routingKey: %s for %s with error: %s, as JSON: %j',
-          message.routingKey, message.exchange, err, err, err.stack)
+          message.routingKey, message.exchange, err, err, err.stack);
       }
     }
 

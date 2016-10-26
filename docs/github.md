@@ -27,6 +27,12 @@ github.githubWebHookConsumer()
 ```
 
 ```js
+// github.builds :: [options] -> Promise Result
+github.builds()
+github.builds(options)
+```
+
+```js
 // github.ping :: () -> Promise Nothing
 github.ping()
 

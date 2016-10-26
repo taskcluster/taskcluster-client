@@ -31,8 +31,8 @@ export const createTemporaryCredentials = (opts) => {
   assert(opts, 'Missing required options');
 
   // subtract 5 min for clock drift
-  const now = new Date(Date.now() - (1000 * 5 * 60));
-  const options = { ...getOptions(), start: now, scopes: [], ...opts };
+  const now = new Date(Date.now() - 1000 * 5 * 60);
+  const options = {...getOptions(), start: now, scopes: [], ...opts};
   const isNamed = !!options.clientId;
 
   assert(options.credentials, 'options.credentials is required');
@@ -43,7 +43,8 @@ export const createTemporaryCredentials = (opts) => {
   }
 
   assert(options.credentials.accessToken, 'options.credentials.accessToken is required');
-  assert(options.credentials.certificate == null, `Temporary credentials cannot be used to make new temporary
+  assert(options.credentials.certificate === null ||
+    options.credentials.certificate === undefined, `Temporary credentials cannot be used to make new temporary
     credentials. Ensure that options.credentials.certificate is null.`);
   assert(options.start instanceof Date, 'options.start must be a Date');
   assert(options.expiry instanceof Date, 'options.expiry must be a Date');
@@ -58,7 +59,7 @@ export const createTemporaryCredentials = (opts) => {
     expiry: options.expiry.getTime(),
     seed: slugid.v4() + slugid.v4(),
     signature: null,
-    issuer: isNamed ? options.credentials.clientId : null
+    issuer: isNamed ? options.credentials.clientId : null,
   };
 
   const signature = crypto.createHmac('sha256', options.credentials.accessToken);
@@ -88,7 +89,7 @@ export const createTemporaryCredentials = (opts) => {
   return {
     clientId: isNamed ? options.clientId : options.credentials.clientId,
     accessToken,
-    certificate: JSON.stringify(certificate)
+    certificate: JSON.stringify(certificate),
   };
 };
 
@@ -115,7 +116,7 @@ export const credentialInformationFactory = (Auth) => async (credentials) => {
   let issuer = credentials.clientId;
   const result = {
     clientId: issuer,
-    active: true
+    active: true,
   };
 
   // Distinguish permanent credentials from temporary credentials
@@ -143,7 +144,7 @@ export const credentialInformationFactory = (Auth) => async (credentials) => {
   }
 
   const anonymousClient = new Auth();
-  const credentialsClient = new Auth({ credentials });
+  const credentialsClient = new Auth({credentials});
   const clientLookup = anonymousClient
     .client(issuer)
     .then(client => {
@@ -166,7 +167,7 @@ export const credentialInformationFactory = (Auth) => async (credentials) => {
   const now = new Date();
 
   if (result.start && result.start > now) {
-    result.active = false
+    result.active = false;
   } else if (result.expiry && result.expiry < now) {
     result.active = false;
   }

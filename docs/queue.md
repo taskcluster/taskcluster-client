@@ -84,6 +84,12 @@ queue.pollTaskUrls(provisionerId, workerType)
 ```
 
 ```js
+// queue.claimWork :: (provisionerId -> workerType -> payload) -> Promise Result
+queue.claimWork(provisionerId, workerType, payload)
+
+```
+
+```js
 // queue.claimTask :: (taskId -> runId -> payload) -> Promise Result
 queue.claimTask(taskId, runId, payload)
 

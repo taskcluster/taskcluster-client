@@ -44,10 +44,10 @@ const createTopicMethod = (ReferenceClient, entry) => {
  *
  * `baseUrl` and `exchangePrefix` defaults to values from reference.
  */
-export default ({ baseUrl = '', exchangePrefix = '', entries = [] }, name = 'Unknown') => {
+export default ({baseUrl = '', exchangePrefix = '', entries = []}, name = 'Unknown') => {
   const ReferenceClient = class extends Client {
     constructor(opts) {
-      super({ baseUrl, exchangePrefix, ...getOptions(), ...opts });
+      super({baseUrl, exchangePrefix, ...getOptions(), ...opts});
     }
   };
 

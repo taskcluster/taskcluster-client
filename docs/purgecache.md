@@ -27,6 +27,18 @@ purgeCache.purgeCache(provisionerId, workerType, payload)
 ```
 
 ```js
+// purgeCache.allPurgeRequests :: [options] -> Promise Result
+purgeCache.allPurgeRequests()
+purgeCache.allPurgeRequests(options)
+```
+
+```js
+// purgeCache.purgeRequests :: (provisionerId -> workerType -> [options]) -> Promise Result
+purgeCache.purgeRequests(provisionerId, workerType)
+purgeCache.purgeRequests(provisionerId, workerType, options)
+```
+
+```js
 // purgeCache.ping :: () -> Promise Nothing
 purgeCache.ping()
 

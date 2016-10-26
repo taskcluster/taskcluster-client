@@ -1,8 +1,8 @@
-import { EventEmitter } from 'events';
+import {EventEmitter} from 'events';
 import amqplib from 'amqplib';
-import { pulse as debug } from './debug';
+import {pulse as debug} from './debug';
 import assert from 'assert';
-import { parse } from 'url';
+import {parse} from 'url';
 
 /**
  * Build Pulse ConnectionString, from options on the form:
@@ -12,7 +12,7 @@ import { parse } from 'url';
  *   hostname: // Hostname to use (defaults to pulse.mozilla.org)
  * }
  */
-const buildPulseConnectionString = ({ username, password, hostname = 'pulse.mozilla.org' }) => {
+const buildPulseConnectionString = ({username, password, hostname = 'pulse.mozilla.org'}) => {
   assert(username, 'options.username is required');
   assert(password, 'options.password is required');
 
@@ -24,7 +24,7 @@ const connect = (connectionString, retries) => {
   return amqplib
     .connect(connectionString, {
       noDelay: true,
-      timeout: 30 * 1000
+      timeout: 30 * 1000,
     })
     .catch(err => {
       if (retries > 0) {

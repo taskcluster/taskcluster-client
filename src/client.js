@@ -1,4 +1,4 @@
-import { format, parse } from 'url';
+import {format, parse} from 'url';
 import http from 'http';
 import https from 'https';
 import superagent from 'superagent';
@@ -38,7 +38,7 @@ const request = (url, options) => {
 const AGENT_OPTIONS = {
   maxSockets: 50,
   maxFreeSockets: 0,
-  keepAlive: false
+  keepAlive: false,
 };
 
 /**
@@ -48,7 +48,7 @@ const AGENT_OPTIONS = {
  */
 export const DEFAULT_AGENTS = {
   http: new http.Agent(AGENT_OPTIONS),
-  https: new https.Agent(AGENT_OPTIONS)
+  https: new https.Agent(AGENT_OPTIONS),
 };
 
 export default class Client {
@@ -73,7 +73,7 @@ export default class Client {
     // Timeout for each _individual_ http request.
     this._timeout = this._options.timeout;
 
-    const { credentials } = this._options;
+    const {credentials} = this._options;
 
     if (credentials && credentials.clientId && credentials.accessToken) {
       // Build ext for hawk requests
@@ -110,7 +110,7 @@ export default class Client {
 
   /** Make a request for a Client instance */
   async makeRequest(entry, url, payload, query) {
-    const { randomizationFactor: rf, delayFactor, retries, maxDelay } = this._options;
+    const {randomizationFactor: rf, delayFactor, retries, maxDelay} = this._options;
 
     // Add query to url if present
     if (query) {
@@ -131,7 +131,7 @@ export default class Client {
       // Timeout for each individual request.
       timeout: this._timeout,
       // We manually manage the retry lifecycle
-      retries: 0
+      retries: 0,
     };
 
     // Send payload if defined
@@ -140,7 +140,7 @@ export default class Client {
       options.headers['content-type'] = 'application/json';
     }
 
-    const { credentials } = this._options;
+    const {credentials} = this._options;
 
     // Authenticate, if credentials are provided
     if (credentials && credentials.clientId && credentials.accessToken) {
@@ -149,9 +149,9 @@ export default class Client {
         credentials: {
           id: credentials.clientId,
           key: credentials.accessToken,
-          algorithm: 'sha256'
+          algorithm: 'sha256',
         },
-        ext: this._extData
+        ext: this._extData,
       });
 
       options.headers.Authorization = header.field;
@@ -184,12 +184,10 @@ export default class Client {
 
           await sleep(delay);
           return fetch(attempt);
+        } else if (err.response && err.response.body) {
+          debug('Error calling: %s NOT retrying! info: %j', entry.name, err.response.body);
         } else {
-          if (err.response && err.response.body) {
-            debug('Error calling: %s NOT retrying! info: %j', entry.name, err.response.body);
-          } else {
-            debug('Error calling: %s NOT retrying! info: %j', entry.name, err);
-          }
+          debug('Error calling: %s NOT retrying! info: %j', entry.name, err);
         }
 
         throw err;
@@ -201,8 +199,8 @@ export default class Client {
   }
 
   willRetry(err, attempts) {
-    const { retries } = this._options;
-    const { response } = err;
+    const {retries} = this._options;
+    const {response} = err;
 
     if (attempts > retries) {
       return false;
@@ -224,7 +222,7 @@ export default class Client {
     const arity = args.length;
 
     // Validate number of arguments
-    assert(arity === entryArity || (optionKeys.length && arity === entryArity + 1),
+    assert(arity === entryArity || optionKeys.length && arity === entryArity + 1,
       `Function \`${entry.name}\` expected ${entryArity} arguments but only received ${arity}`);
 
     const endpoint = this.buildEndpoint(entry, args);
@@ -240,7 +238,7 @@ export default class Client {
       .forEach(key => assert(optionKeys.includes(key),
         `Function \`${entry.name}\` expected options ${optionKeys.join(', ')} but received ${key}`));
 
-    const { monitor } = this._options;
+    const {monitor} = this._options;
     const start = monitor ? process.hrtime() : null;
 
     try {
@@ -273,8 +271,8 @@ export default class Client {
         throw err;
       }
 
-      const { response } = err;
-      const { body } = response;
+      const {response} = err;
+      const {body} = response;
       let message = body.message || 'Unknown Server Error';
 
       if (code === 401) {
@@ -306,14 +304,15 @@ export default class Client {
         }
 
         if (typeof value === 'string') {
-          assert(key.multipleWords || !value.includes('.'),
-            `Routing key pattern "${value}" for \`${key.name}\` cannot contain dots as it does not hold multiple words`);
+          assert(key.multipleWords || !value.includes('.'), `Routing key pattern "${value}" for \`${key.name}\` cannot
+            contain dots as it does not hold multiple words`);
 
           return value;
         }
 
         // Check that we haven't got an invalid value
-        assert(value == null, `Value "${value}" is not supported as routingKey pattern for ${key.name}`);
+        assert(value === null || value === undefined,
+          `Value "${value}" is not supported as routingKey pattern for ${key.name}`);
 
         // Return default pattern for entry not being matched
         return key.multipleWords ? '#' : '*';
@@ -324,7 +323,7 @@ export default class Client {
     return {
       exchange: this._options.exchangePrefix + entry.exchange,
       routingKeyPattern: pattern,
-      routingKeyReference: cloneDeep(entry.routingKey)
+      routingKeyReference: cloneDeep(entry.routingKey),
     };
   };
 
@@ -414,7 +413,7 @@ export default class Client {
     }
 
     const url = this.buildUrl(method, ...args);
-    const { credentials } = this._options;
+    const {credentials} = this._options;
 
     assert(credentials.clientId, 'buildSignedUrl missing required credentials');
     assert(credentials.accessToken, 'buildSignedUrl missing required credentials accessToken');
@@ -426,10 +425,10 @@ export default class Client {
       credentials: {
         id: credentials.clientId,
         key: credentials.accessToken,
-        algorithm: 'sha256'
+        algorithm: 'sha256',
       },
       ttlSec: expiration,
-      ext: this._extData
+      ext: this._extData,
     });
 
     parts.search = parts.search ?

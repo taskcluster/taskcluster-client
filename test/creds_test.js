@@ -1,23 +1,20 @@
 suite('client credential handling', function() {
   var base            = require('taskcluster-base');
-  var taskcluster     = require('../');
+  var taskcluster     = require('../build/index.bundle');
   var assert          = require('assert');
   var path            = require('path');
   var debug           = require('debug')('test:client');
-  var _               = require('lodash');
   var request         = require('got');
 
   // This suite exercises the credential-handling functionality of the client
   // against a the auth service's testAuthenticate endpoint.
 
-  let client = function(options) {
-    options = _.defaults({}, options || {}, {
-      credentials: {},
-    });
-    options.credentials = _.defaults({}, options.credentials, {
+  let client = function(options = {credentials: {}}) {
+    options.credentials = {
       clientId: 'tester',
       accessToken: 'no-secret',
-    });
+      ...options.credentials,
+    };
     return new taskcluster.Auth(options);
   };
 

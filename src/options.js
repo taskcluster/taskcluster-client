@@ -11,12 +11,12 @@ export default () => ({
   credentials: {
     clientId: process.env.TASKCLUSTER_CLIENT_ID,
     accessToken: process.env.TASKCLUSTER_ACCESS_TOKEN,
-    certificate: process.env.TASKCLUSTER_CERTIFICATE
+    certificate: process.env.TASKCLUSTER_CERTIFICATE,
   },
   // Request time out (defaults to 30 seconds)
   timeout: 30 * 1000,
-    // Max number of request retries
-    retries: 5,
+  // Max number of request retries
+  retries: 5,
   // Multiplier for computation of retry delay: 2 ^ retry * delayFactor,
   // 100 ms is solid for servers, and 500ms - 1s is suitable for background
   // processes
@@ -26,5 +26,5 @@ export default () => ({
   randomizationFactor: 0.25,
   // Maximum retry delay (defaults to 30 seconds)
   maxDelay: 30 * 1000,
-  ...customOptions
+  ...customOptions,
 });

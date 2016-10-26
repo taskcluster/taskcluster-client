@@ -1,4 +1,4 @@
-import { nice } from 'slugid';
+import {nice} from 'slugid';
 
 // Regular expression matching:
 // A years B months C days D hours E minutes F seconds
@@ -11,7 +11,7 @@ const timeExp = new RegExp([
   '(\\s*(\\d+)\\s*h((ours?)|r)?)?',
   '(\\s*(\\d+)\\s*min(utes?)?)?',
   '(\\s*(\\d+)\\s*s(ec(onds?)?)?)?',
-  '\\s*$'
+  '\\s*$',
 ].join(''), 'i');
 
 /** Parse time string */
@@ -28,13 +28,13 @@ export const parseTime = (str = '') => {
 
   // Return parsed values
   return {
-    years: parseInt(match[4] || 0) * neg,
-    months: parseInt(match[8] || 0) * neg,
-    weeks: parseInt(match[11] || 0) * neg,
-    days: parseInt(match[15] || 0) * neg,
-    hours: parseInt(match[18] || 0) * neg,
-    minutes: parseInt(match[22] || 0) * neg,
-    seconds: parseInt(match[25] || 0) * neg
+    years: parseInt(match[4] || 0, 10) * neg,
+    months: parseInt(match[8] || 0, 10) * neg,
+    weeks: parseInt(match[11] || 0, 10) * neg,
+    days: parseInt(match[15] || 0, 10) * neg,
+    hours: parseInt(match[18] || 0, 10) * neg,
+    minutes: parseInt(match[22] || 0, 10) * neg,
+    seconds: parseInt(match[25] || 0, 10) * neg,
   };
 };
 

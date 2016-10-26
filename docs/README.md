@@ -21,6 +21,7 @@ that may be rejected from a Promise.
 - [Index](index.md)
 - [Login](login.md)
 - [Notify](notify.md)
+- [Pulse](pulse.md)
 - [PurgeCache](purgecache.md)
 - [PurgeCacheEvents](purgecacheevents.md)
 - [Queue](queue.md)

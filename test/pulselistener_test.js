@@ -1,5 +1,5 @@
 suite('PulseListener', function() {
-  var taskcluster     = require('../');
+  var taskcluster     = require('../build/index.bundle');
   var assert          = require('assert');
   var mockEvents      = require('./mockevents');
   var slugid          = require('slugid');

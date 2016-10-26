@@ -1,15 +1,16 @@
-import { EventEmitter } from 'events';
+import {EventEmitter} from 'events';
+import SockJS from 'sockjs-client';
 import createDebugger from 'debug';
 import urlJoin from 'url-join';
 import slugid from 'slugid';
-import { isServer } from './utils';
+import {isServer} from './utils';
 
 const debug = createDebugger('taskcluster-client:weblistener');
 const READY_STATE = {
   CONNECTING: 0,
   OPEN: 1,
   CLOSING: 2,
-  CLOSED: 4
+  CLOSED: 4,
 };
 
 /**
@@ -24,26 +25,15 @@ export default class WebListener extends EventEmitter {
    * The location that loads this module needs to provide a sock.js module.
    * Otherwise, we can't use the listener in both node.js and web-browser.
    */
-  static SockJS = null;
-
   constructor(options) {
-    if (!WebListener.SockJS) {
-      console.log('You must provide a SockJS implementation for WebListener!');
-      throw new Error('SockJS implementation not provided');
-    }
-
     super();
     this.options = {
       baseUrl: 'https://events.taskcluster.net/v1',
-      ...options
+      ...options,
     };
     // Hold list of bindings and promises that are waiting to be resolved
     this._bindings = [];
     this._pendingPromises = [];
-
-    this.onMessage = ::this.onMessage;
-    this.onError = ::this.onError;
-    this.onClose = ::this.onClose;
   }
 
   /** Connect and bind all declared bindings */
@@ -51,12 +41,12 @@ export default class WebListener extends EventEmitter {
     const socketUrl = urlJoin(this.options.baseUrl, 'listen');
 
     // Open websocket
-    this.socket = new WebListener.SockJS(socketUrl);
+    this.socket = new SockJS(socketUrl);
 
     /// Add handlers for messages, errors and closure
-    this.socket.addEventListener('message', this.onMessage);
-    this.socket.addEventListener('error', this.onError);
-    this.socket.addEventListener('close', this.onClose);
+    this.socket.addEventListener('message', e => this.onMessage(e));
+    this.socket.addEventListener('error', e => this.onError(e));
+    this.socket.addEventListener('close', e => this.onClose(e));
 
     await new Promise((resolve, reject) => {
       this.socket.addEventListener('error', reject);
@@ -104,8 +94,8 @@ export default class WebListener extends EventEmitter {
 
     // Send message, if socket is open
     return new Promise((resolve, reject) => {
-      this._pendingPromises.push({ id, resolve, reject });
-      this.socket.send(JSON.stringify({ method, id, options }));
+      this._pendingPromises.push({id, resolve, reject});
+      this.socket.send(JSON.stringify({method, id, options}));
     });
   }
 
@@ -138,7 +128,7 @@ export default class WebListener extends EventEmitter {
         if (message.event === 'error') {
           promise.reject(message.payload);
         } else {
-          promise.resolve(message.payload)
+          promise.resolve(message.payload);
         }
 
         // These promises are no longer pending, they are handled.
@@ -209,16 +199,4 @@ export default class WebListener extends EventEmitter {
   pause() {
     return this.close();
   }
-};
-
-if (typeof IS_BROWSER !== 'undefined' && !IS_BROWSER) {
-  Object.defineProperty(WebListener, 'SockJS', {
-    enumerable: true,
-    get() {
-      // Load it on demand to keep things working under new node version where support might be spotty
-      return require('sockjs-client');
-    }
-  })
-} else {
-  WebListener.SockJS = require('sockjs-client');
 }
