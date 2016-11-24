@@ -6,6 +6,7 @@ suite('PulseListener', function() {
   var slugid          = require('slugid');
   var debug           = require('debug')('test:listener');
   var base            = require('taskcluster-base');
+  var _               = require('lodash');
 
   // Load configuration
   var cfg = base.config();
@@ -14,6 +15,13 @@ suite('PulseListener', function() {
     console.error("Skipping PulseListener tests due to missing config");
     this.pending = true;
   }
+
+  var contact = {
+    method: 'email',
+    payload: {
+      address: 'test@example.com'
+    }
+  };
 
   var connectionString = [
     'amqps://',         // Ensure that we're using SSL
@@ -40,10 +48,6 @@ suite('PulseListener', function() {
 
   var _publisher = null;
   setup(function() {
-    mockEvents.configure({
-      connectionString:       connectionString,
-      exchangePrefix:         exchangePrefix
-    });
     debug("Connecting");
     return mockEvents.connect().then(function(publisher) {
       debug("Connected");
@@ -64,6 +68,7 @@ suite('PulseListener', function() {
   // Pulse credentials
   var credentials = cfg.pulse
 
+  // Preliminary tests on MockEventsClient (without PulseListener)
   // Test that client provides us with binding information
   test('binding info', function() {
     var info = mockEventsClient.testExchange({testId: 'test'});
@@ -78,19 +83,28 @@ suite('PulseListener', function() {
     assert(info.routingKeyPattern === 'my-constant.0.#.*.*');
   });
 
+  // PulseListener connection tests
+  // The bind test is run three times with different flavours of credentials:
+  // 1. connectionString
+  // 2. username and password
+  // 2. namespace and contact - actual credentials requested from (mocked) taskcluster-pulse
+  var credConfigurations = {
+    'connectionString': {connectionString: connectionString},
+    'username and password': cfg.pulse,
+    'taskcluster-pulse': {contact: contact, namespace: cfg.pulse.username}
+  };
+  
+  _.forEach(credConfigurations, function(creds, methodName) {
+    test('bind via ' + methodName, function() {
+      var listener = new taskcluster.PulseListener({credentials: creds});
 
-  test('bind via connection string', function() {
-    var listener = new taskcluster.PulseListener({
-      credentials: {
-        connectionString: connectionString
-      }
-    });
-
-    return listener.resume().then(function() {
-      return listener.close();
+      return listener.resume().then(function() {
+        return listener.close();
+      });
     });
   });
 
+  // PulseListener logic tests
   // Bind and listen with listener
   test('bind and listen', function() {
     // Create listener
