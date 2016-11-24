@@ -7,6 +7,7 @@ suite('PulseListener', function() {
   var debug           = require('debug')('test:listener');
   var base            = require('taskcluster-base');
   var _               = require('lodash');
+  var nock            = require('nock');
 
   // Load configuration
   var cfg = base.config();
@@ -55,6 +56,8 @@ suite('PulseListener', function() {
     });
   });
   teardown(function() {
+    assert(nock.isDone());
+    nock.cleanAll();
     return _publisher.close().then(function() {
       _publisher = null;
     });
@@ -66,7 +69,7 @@ suite('PulseListener', function() {
   var mockEventsClient = new MockEventsClient();
 
   // Pulse credentials
-  var credentials = cfg.pulse
+  var credentials = cfg.pulse;
 
   // Preliminary tests on MockEventsClient (without PulseListener)
   // Test that client provides us with binding information
@@ -96,6 +99,16 @@ suite('PulseListener', function() {
   
   _.forEach(credConfigurations, function(creds, methodName) {
     test('bind via ' + methodName, function() {
+      if (methodName == 'taskcluster-pulse') {
+        nock('https://pulse.taskcluster.net')
+          .post('/v1/namespace/' + creds.namespace)
+          .reply(200, {
+            namespace: creds.namespace,
+            username: cfg.pulse.username,
+            password: cfg.pulse.password,
+            contact: creds.contact
+          });
+      }
       var listener = new taskcluster.PulseListener({credentials: creds});
 
       return listener.resume().then(function() {
