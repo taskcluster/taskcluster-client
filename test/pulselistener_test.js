@@ -103,10 +103,10 @@ suite('PulseListener', function() {
         nock('https://pulse.taskcluster.net')
           .post('/v1/namespace/' + creds.namespace)
           .reply(200, {
-            namespace: creds.namespace,
             username: cfg.pulse.username,
             password: cfg.pulse.password,
-            contact: creds.contact
+            connectionString: connectionString,
+            expiration: '' // TODO not used for now
           });
       }
       var listener = new taskcluster.PulseListener({credentials: creds});
