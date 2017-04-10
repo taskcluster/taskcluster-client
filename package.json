@@ -13,16 +13,16 @@
     "url": "https://github.com/taskcluster/taskcluster-client.git"
   },
   "dependencies": {
-    "lodash": "^3.6.0",
+    "lodash": "^4.13.1",
     "debug": "^2.1.3",
-    "superagent": "~1.7.0",
-    "superagent-promise": "^0.2.0",
+    "superagent": "~1.8.3",
+    "superagent-promise": "^1.1.0",
     "superagent-hawk": "^0.0.6",
     "amqplib": "^0.5.1",
     "slugid": "^1.1.0",
-    "promise": "^6.1.0",
-    "hawk": "^2.3.1",
-    "url-join": "^0.0.1"
+    "promise": "^7.1.1",
+    "hawk": "^5.0.0",
+    "url-join": "^1.1.0"
   },
   "files": [
     "lib",
@@ -34,14 +34,14 @@
   },
   "devDependencies": {
     "mocha": "^2.2.1",
-    "taskcluster-base": "^2.1.0",
+    "taskcluster-base": "^3.0.0",
     "commander": "^2.4.0",
     "cliff": "^0.1.10",
-    "browserify": "^9.0.3",
-    "mocha-phantomjs": "3.5.3",
-    "phantomjs": "1.9.16",
-    "babel": "^5.5.8",
+    "browserify": "^13.0.1",
+    "mocha-phantomjs": "4.0.2",
+    "phantomjs": "2.1.7",
+    "babel": "^6.5.2",
     "json-stable-stringify": "^1.0.0",
-    "nock": "^7.0.2"
+    "nock": "^8.0.0"
   }
 }
