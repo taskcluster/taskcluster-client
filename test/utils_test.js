@@ -167,46 +167,26 @@ suite('taskcluster utilities', function() {
       assert(Math.abs(d2.getTime() - d1.getTime()) <= 10);
     });
 
-    test('fromNow(2 years 15 months)', function() {
-      var d1 = new Date();
-      d1.setMonth(d1.getMonth() + 12 * 2 + 15)
-        var d2 = taskcluster.fromNow('2 years 15mo');
-
-      // Allow for 10ms margin
-      assert(Math.abs(d2.getTime() - d1.getTime()) <= 10);
-    });
-
     test('fromNow(2 years 55 months)', function() {
-      var d1 = new Date();
-      d1.setMonth(d1.getMonth() + 12 * 2 + 55)
-        var d2 = taskcluster.fromNow('2 years 55mo');
+      var day = 24 * 60 * 60 * 1000;
+      var d1 = new Date(new Date().getTime() + 2 * 365 * day + 55 * 30 * day);
+      var d2 = taskcluster.fromNow('2 years 55mo');
 
       // Allow for 10ms margin
       assert(Math.abs(d2.getTime() - d1.getTime()) <= 10);
     });
 
     test('fromNow(240 months)', function() {
-      var d1 = new Date();
-      d1.setFullYear(d1.getFullYear() + 20)
-        var d2 = taskcluster.fromNow('240 months');
+      var d1 = new Date(new Date().getTime() + 240 * 30 * 24 * 60 * 60 * 1000);
+      var d2 = taskcluster.fromNow('240 months');
 
       // Allow for 10ms margin
       assert(Math.abs(d2.getTime() - d1.getTime()) <= 10);
     });
 
     test('fromNow(-240 months)', function() {
-      var d1 = new Date();
-      d1.setFullYear(d1.getFullYear() - 20)
-        var d2 = taskcluster.fromNow('-240 months');
-
-      // Allow for 10ms margin
-      assert(Math.abs(d2.getTime() - d1.getTime()) <= 10);
-    });
-
-    test('fromNow(20 years)', function() {
-      var d1 = new Date();
-      d1.setFullYear(d1.getFullYear() + 20)
-        var d2 = taskcluster.fromNow('20 years');
+      var d1 = new Date(new Date().getTime() - 240 * 30 * 24 * 60 * 60 * 1000);
+      var d2 = taskcluster.fromNow('-240 months');
 
       // Allow for 10ms margin
       assert(Math.abs(d2.getTime() - d1.getTime()) <= 10);
@@ -229,6 +209,9 @@ suite('taskcluster utilities', function() {
     {expr: '2 days', from: '2017-01-19T16:27:20.974Z', result: '2017-01-21T16:27:20.974Z'},
     {expr: '1 second', from: '2017-01-19T16:27:20.974Z', result: '2017-01-19T16:27:21.974Z'},
     {expr: '1 week', from: '2017-01-19T16:27:20.974Z', result: '2017-01-26T16:27:20.974Z'},
+    {expr: '1 month', from: '2017-01-19T16:27:20.974Z', result: '2017-02-18T16:27:20.974Z'},
+    {expr: '30 mo', from: '2017-01-19T16:27:20.974Z', result: '2019-07-08T16:27:20.974Z'},
+    {expr: '-30 mo', from: '2017-01-19T16:27:20.974Z', result: '2014-08-03T16:27:20.974Z'},
     {expr: '1 year', from: '2017-01-19T16:27:20.974Z', result: '2018-01-19T16:27:20.974Z'},
     ].forEach(({expr, from, result}) => {
       test(expr, function() {
