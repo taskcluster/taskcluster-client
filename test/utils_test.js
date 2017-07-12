@@ -108,6 +108,7 @@ suite('taskcluster utilities', function() {
     assert.equal(parseTime('45 minute').minutes, 45);
     assert.equal(parseTime('45 minutes').minutes, 45);
     assert.equal(parseTime('45minutes').minutes, 45);
+    assert.equal(parseTime('45m').minutes, 45);
     assert.equal(parseTime('45    min').minutes, 45);
     assert.equal(parseTime('  45    min   ').minutes, 45);
     assert.equal(parseTime('  45 minutes   ').minutes, 45);
@@ -218,8 +219,12 @@ suite('taskcluster utilities', function() {
     {expr: '3h', from: '2017-01-19T16:27:20.974Z', result: '2017-01-19T19:27:20.974Z'},
     {expr: '1 hours', from: '2017-01-19T16:27:20.974Z', result: '2017-01-19T17:27:20.974Z'},
     {expr: '-1 hour', from: '2017-01-19T16:27:20.974Z', result: '2017-01-19T15:27:20.974Z'},
+    {expr: '1 m', from: '2017-01-19T16:27:20.974Z', result: '2017-01-19T16:28:20.974Z'},
+    {expr: '1m', from: '2017-01-19T16:27:20.974Z', result: '2017-01-19T16:28:20.974Z'},
     {expr: '12 min', from: '2017-01-19T16:27:20.974Z', result: '2017-01-19T16:39:20.974Z'},
     {expr: '12min', from: '2017-01-19T16:27:20.974Z', result: '2017-01-19T16:39:20.974Z'},
+    {expr: '11m', from: '2017-01-19T16:27:20.974Z', result: '2017-01-19T16:38:20.974Z'},
+    {expr: '11 m', from: '2017-01-19T16:27:20.974Z', result: '2017-01-19T16:38:20.974Z'},
     {expr: '1 day', from: '2017-01-19T16:27:20.974Z', result: '2017-01-20T16:27:20.974Z'},
     {expr: '2 days', from: '2017-01-19T16:27:20.974Z', result: '2017-01-21T16:27:20.974Z'},
     {expr: '1 second', from: '2017-01-19T16:27:20.974Z', result: '2017-01-19T16:27:21.974Z'},
