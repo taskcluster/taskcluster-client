@@ -4,7 +4,6 @@ suite('client requests/responses', function() {
   var assert          = require('assert');
   var path            = require('path');
   var debug           = require('debug')('test:client');
-  var request         = require('superagent-promise');
   var _               = require('lodash');
   var nock            = require('nock');
 

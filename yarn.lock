@@ -894,7 +894,7 @@ component-emitter@1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/component-emitter/-/component-emitter-1.1.2.tgz#296594f2753daa63996d2af08d15a95116c9aec3"
 
-component-emitter@~1.2.0:
+component-emitter@^1.2.0, component-emitter@~1.2.0:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/component-emitter/-/component-emitter-1.2.1.tgz#137918d6d78283f7df7a6b7c5a63e140e69425e6"
 
@@ -970,6 +970,10 @@ cookiejar@2.0.1:
 cookiejar@2.0.6:
   version "2.0.6"
   resolved "https://registry.yarnpkg.com/cookiejar/-/cookiejar-2.0.6.tgz#0abf356ad00d1c5a219d88d44518046dd026acfe"
+
+cookiejar@^2.0.6:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/cookiejar/-/cookiejar-2.1.1.tgz#41ad57b1b555951ec171412a81942b1e8200d34a"
 
 core-js@^1.0.0:
   version "1.2.7"
@@ -1377,6 +1381,10 @@ extend@3.0.0, extend@~3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/extend/-/extend-3.0.0.tgz#5a474353b9f3353ddd8176dfd37b91c83a46f1d4"
 
+extend@^3.0.0:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/extend/-/extend-3.0.1.tgz#a755ea7bc1adfcc5a31ce7e762dbaadc5e636444"
+
 extend@~1.2.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/extend/-/extend-1.2.1.tgz#a0f5fd6cfc83a5fe49ef698d60ec8a624dd4576c"
@@ -1474,6 +1482,14 @@ form-data@0.2.0:
     combined-stream "~0.0.4"
     mime-types "~2.0.3"
 
+form-data@^2.1.1:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/form-data/-/form-data-2.2.0.tgz#9a5e3b9295f980b2623cf64fa238b14cebca707b"
+  dependencies:
+    asynckit "^0.4.0"
+    combined-stream "^1.0.5"
+    mime-types "^2.1.12"
+
 form-data@~0.1.0:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/form-data/-/form-data-0.1.4.tgz#91abd788aba9702b1aabfa8bc01031a2ac9e3b12"
@@ -1493,6 +1509,10 @@ form-data@~2.1.1:
 formidable@1.0.14:
   version "1.0.14"
   resolved "https://registry.yarnpkg.com/formidable/-/formidable-1.0.14.tgz#2b3f4c411cbb5fdd695c44843e2a23514a43231a"
+
+formidable@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/formidable/-/formidable-1.1.1.tgz#96b8886f7c3c3508b932d6bd70c4d3a88f35f1a9"
 
 formidable@~1.0.14:
   version "1.0.17"
@@ -2208,7 +2228,7 @@ methods@1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/methods/-/methods-1.1.0.tgz#5dca4ee12df52ff3b056145986a8f01cbc86436f"
 
-methods@~1.1.1:
+methods@^1.1.1, methods@~1.1.1:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/methods/-/methods-1.1.2.tgz#5529a4d67654134edcc5266656835b0f851afcee"
 
@@ -2272,6 +2292,10 @@ mime@1.2.5:
 mime@1.3.4:
   version "1.3.4"
   resolved "https://registry.yarnpkg.com/mime/-/mime-1.3.4.tgz#115f9e3b6b3daf2959983cb38f149a2d40eb5d53"
+
+mime@^1.3.4:
+  version "1.3.6"
+  resolved "https://registry.yarnpkg.com/mime/-/mime-1.3.6.tgz#591d84d3653a6b0b4a3b9df8de5aa8108e72e5e0"
 
 minimalistic-assert@^1.0.0:
   version "1.0.0"
@@ -2830,6 +2854,10 @@ qs@4.0.0:
 qs@^6.0.2:
   version "6.4.0"
   resolved "https://registry.yarnpkg.com/qs/-/qs-6.4.0.tgz#13e26d28ad6b0ffaa91312cd3bf708ed351e7233"
+
+qs@^6.1.0:
+  version "6.5.0"
+  resolved "https://registry.yarnpkg.com/qs/-/qs-6.5.0.tgz#8d04954d364def3efc55b5a0793e1e2c8b1e6e49"
 
 qs@~1.2.0:
   version "1.2.2"
@@ -3489,6 +3517,21 @@ superagent@0.18.2, superagent@^0.18.2:
     qs "0.6.6"
     readable-stream "1.0.27-1"
     reduce-component "1.0.1"
+
+superagent@3.5.1:
+  version "3.5.1"
+  resolved "https://registry.yarnpkg.com/superagent/-/superagent-3.5.1.tgz#0a4faefda33677777888347dd7b4d21f410c871b"
+  dependencies:
+    component-emitter "^1.2.0"
+    cookiejar "^2.0.6"
+    debug "^2.2.0"
+    extend "^3.0.0"
+    form-data "^2.1.1"
+    formidable "^1.1.1"
+    methods "^1.1.1"
+    mime "^1.3.4"
+    qs "^6.1.0"
+    readable-stream "^2.0.5"
 
 superagent@^0.16.0:
   version "0.16.0"

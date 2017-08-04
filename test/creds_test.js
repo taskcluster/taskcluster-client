@@ -4,7 +4,7 @@ suite('client credential handling', function() {
   var assert          = require('assert');
   var path            = require('path');
   var debug           = require('debug')('test:client');
-  var request         = require('superagent-promise');
+  var request         = require('superagent');
   var _               = require('lodash');
 
   // This suite exercises the credential-handling functionality of the client
@@ -233,14 +233,14 @@ suite('client credential handling', function() {
   });
 
   let getJson = async function(url) {
-    let res = await request.get(url).end();
+    let res = await request.get(url);
     return res.body;
   };
 
   test('buildSignedUrl', async () => {
     let cl = client();
     let url = cl.buildSignedUrl(cl.testAuthenticateGet);
-    assert((await request.get(url).end()).ok);
+    assert((await request.get(url)).ok);
   });
 
 
@@ -266,7 +266,7 @@ suite('client credential handling', function() {
       authorizedScopes: ['test:get'],  // no test:authenticate-get
     })
     let url = cl.buildSignedUrl(cl.testAuthenticateGet);
-    await request.get(url).end().then(() => assert(false), err => {
+    await request.get(url).then(() => assert(false), err => {
       assert(err.response.statusCode === 403);
     });
   });
@@ -303,7 +303,7 @@ suite('client credential handling', function() {
     let url = cl.buildSignedUrl(cl.testAuthenticateGet, {
       expiration: 600,
     });
-    assert((await request.get(url).end()).ok);
+    assert((await request.get(url)).ok);
   });
 
   test('buildSignedUrl with temporary credentials (expired)', async () => {
@@ -321,7 +321,7 @@ suite('client credential handling', function() {
     let url = cl.buildSignedUrl(cl.testAuthenticateGet, {
       expiration: -600, // This seems to work, not sure how long it will work...
     });
-    await request.get(url).end().then(() => assert(false), err => {
+    await request.get(url).then(() => assert(false), err => {
       assert(err.response.statusCode === 401);
     });
   });
