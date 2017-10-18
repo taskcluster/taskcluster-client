@@ -1,8 +1,8 @@
-var base = require('taskcluster-base');
+var Exchanges = require('pulse-publisher');
 
 var connectionString = 'amqp://guest:guest@localhost:5672';
 
-var exchanges = new base.Exchanges({
+var exchanges = new Exchanges({
   title:              "Test Exchanges",
   description:        "Used to generate a test reference"
 });

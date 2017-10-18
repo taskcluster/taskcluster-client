@@ -1,5 +1,4 @@
 suite('client credential handling', function() {
-  var base            = require('taskcluster-base');
   var taskcluster     = require('../');
   var assert          = require('assert');
   var path            = require('path');

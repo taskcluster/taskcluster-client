@@ -5,10 +5,10 @@ suite('PulseListener', function() {
   var mockEvents      = require('./mockevents');
   var slugid          = require('slugid');
   var debug           = require('debug')('test:listener');
-  var base            = require('taskcluster-base');
+  var config          = require('typed-env-config');
 
   // Load configuration
-  var cfg = base.config();
+  var cfg = config();
 
   suite("with real Pulse", function() {
 //    if(!cfg.pulse.password) {

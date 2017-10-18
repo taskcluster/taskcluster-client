@@ -1,5 +1,4 @@
 suite('client requests/responses', function() {
-  var base            = require('taskcluster-base');
   var taskcluster     = require('../');
   var assert          = require('assert');
   var path            = require('path');
@@ -7,6 +6,7 @@ suite('client requests/responses', function() {
   var request         = require('superagent-promise');
   var _               = require('lodash');
   var nock            = require('nock');
+  var _monitor        = require('taskcluster-lib-monitor');
 
   // This suite exercises the request and response functionality of
   // the client against a totally fake service defined by this reference
@@ -321,7 +321,7 @@ suite('client requests/responses', function() {
   });
 
   test('Report stats', async () => {
-    let monitor = await base.monitor({
+    let monitor = await _monitor({
       project: 'tc-client',
       credentials: {},
       mock: true,
@@ -341,7 +341,7 @@ suite('client requests/responses', function() {
   });
 
   test('Report stats (unauthorized)', async () => {
-    let monitor = await base.monitor({
+    let monitor = await _monitor({
       project: 'tc-client',
       credentials: {},
       mock: true,

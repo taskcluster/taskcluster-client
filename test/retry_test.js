@@ -1,5 +1,4 @@
 suite('retry-test', function() {
-  var base            = require('taskcluster-base');
   var taskcluster     = require('../');
   var assert          = require('assert');
   var path            = require('path');
@@ -7,9 +6,14 @@ suite('retry-test', function() {
   var request         = require('superagent-promise');
   var Promise         = require('promise');
   var _               = require('lodash');
+  var _validator      = require('taskcluster-lib-validate');
+  var _monitor        = require('taskcluster-lib-monitor');
+  var API             = require('taskcluster-lib-api');
+  var testing         = require('taskcluster-lib-testing');
+  var _app            = require('taskcluster-lib-app');
 
   // Construct API
-  var api = new base.API({
+  var api = new API({
     title:        "Retry API",
     description:  "API that sometimes works by retrying things"
   });
@@ -103,18 +107,18 @@ suite('retry-test', function() {
 
   setup(async function() {
     assert(_apiServer === null,       "_apiServer must be null");
-    base.testing.fakeauth.start({
+    testing.fakeauth.start({
       'test-client': ['auth:credentials', 'test:internal-error'],
     });
 
-    monitor = await base.monitor({
+    monitor = await _monitor({
       project: 'tc-client',
       credentials: {},
       mock: true,
     });
 
     // Create server for api
-    return base.validator({
+    return _validator({
       folder:         path.join(__dirname, 'schemas'),
       baseUrl:        'http://localhost:4321/',
     }).then(function(validator) {
@@ -136,7 +140,7 @@ suite('retry-test', function() {
 
 
       // Create application
-      var app = base.app({
+      var app = _app({
         port:         60526,
         env:          'development',
         forceSSL:     false,
@@ -154,7 +158,7 @@ suite('retry-test', function() {
 
   // Close server
   teardown(function() {
-    base.testing.fakeauth.stop();
+    testing.fakeauth.stop();
     assert(_apiServer,      "_apiServer doesn't exist");
     if (taskcluster.agents.http.destroy) {
       taskcluster.agents.http.destroy();
@@ -187,7 +191,7 @@ suite('retry-test', function() {
   });
 
   test("Can succeed after 3 attempts (record stats)", async function() {
-    let m = await base.monitor({
+    let m = await _monitor({
       project: 'tc-client',
       credentials: {},
       mock: true,

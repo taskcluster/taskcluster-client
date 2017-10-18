@@ -4,46 +4,30 @@ suite('WebListener', function() {
   var slugid      = require('slugid');
   var taskcluster = require('../');
   var debug       = require('debug')('test:WebListener');
-  var base        = require('taskcluster-base');
+  var config      = require('typed-env-config');
   var mockEvents  = require('./mockevents');
 
   // Load configuration
-  var cfg = base.config();
+  var cfg = config();
 
   if(!cfg.pulse.password) {
     console.log("Skipping PulseListener tests due to missing config");
     this.pending = true;
   }
 
-  var connectionString = [
-    'amqps://',         // Ensure that we're using SSL
-    cfg.pulse.username,
-    ':',
-    cfg.pulse.password,
-    '@',
-    'pulse.mozilla.org',
-    ':',
-    5671                // Port for SSL
-  ].join('');
-
   var exchangePrefix = [
     'exchange',
     cfg.pulse.username,
     'taskcluster-client',
-    'test'
   ].join('/') + '/';
 
   mockEvents.configure({
-    connectionString:       connectionString,
-    exchangePrefix:         exchangePrefix
+    exchangePrefix:         'taskcluster-client/',
+    credentials:            cfg.pulse,
   });
 
   var _publisher = null;
   setup(function() {
-    mockEvents.configure({
-      connectionString:       connectionString,
-      exchangePrefix:         exchangePrefix
-    });
     debug("Connecting");
     return mockEvents.connect().then(function(publisher) {
       debug("Connected");
