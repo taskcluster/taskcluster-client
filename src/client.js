@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var request     = require('superagent-promise');
+var request     = require('superagent');
 var debug       = require('debug')('taskcluster-client');
 var _           = require('lodash');
 var assert      = require('assert');
@@ -293,7 +293,7 @@ exports.createClient = function(reference, name) {
             url,
             payload,
             query
-          ).end().then(function(res) {
+          ).then(function(res) {
             // If request was successful, accept the result
             debug("Success calling: %s, (%s retries)",
                   entry.name, attempts - 1);

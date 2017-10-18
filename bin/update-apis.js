@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 var fs          = require('fs');
 var path        = require('path');
-var request     = require('superagent-promise');
+var request     = require('superagent');
 var cliff       = require('cliff');
 var program     = require('commander');
 var _           = require('lodash');
@@ -161,7 +161,7 @@ program
     // Fetch the Reference Manifest
     var manifestUrl = 'http://references.taskcluster.net/manifest.json';
     console.log('Fetching manifest reference from %s', manifestUrl);
-    var p = request.get(manifestUrl).end();
+    var p = request.get(manifestUrl);
 
     p = p.then(function(res) {
       var manifest = res.body;
@@ -171,8 +171,8 @@ program
     p = p.then(function(manifest) {
       apis = {};
       return Promise.all(Object.keys(manifest).map(function(name) {
-        console.log('Fetching %s reference', name); 
-        return request.get(manifest[name]).end().then(function(res) {
+        console.log('Fetching %s reference', name);
+        return request.get(manifest[name]).then(function(res) {
           console.log('Updated ' + name);
           apis[name] = {
             referenceUrl: manifest[name],
