@@ -8,7 +8,7 @@
     "compile": "babel-compile -p taskcluster src:lib test:.test",
     "prepublish": "npm run compile",
     "pretest": "npm run compile",
-    "test": "mocha ./.test/*_test.js"
+    "test": "mocha .test/lint.js ./.test/*_test.js"
   },
   "repository": {
     "type": "git",
@@ -17,10 +17,14 @@
   "dependencies": {
     "amqplib": "^0.5.1",
     "babel-compile": "^2.0.0",
+    "babel-eslint": "^8",
     "babel-preset-taskcluster": "^3.0.0",
     "debug": "^3.1.0",
+    "eslint-config-taskcluster": "^2.0.0",
+    "eslint-plugin-taskcluster": "^1.0.2",
     "hawk": "^6.0.2",
     "lodash": "^4.17.4",
+    "mocha-eslint": "^3.0.1",
     "promise": "^8.0.1",
     "pulse-publisher": "^2.0.0",
     "slugid": "^1.1.0",
