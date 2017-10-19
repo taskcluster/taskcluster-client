@@ -6,7 +6,6 @@ var cliff       = require('cliff');
 var program     = require('commander');
 var _           = require('lodash');
 var Promise     = require('promise');
-var browserify  = require('browserify');
 var stringify   = require('json-stable-stringify');
 
 // Markers for start and end of documentation section
@@ -14,12 +13,12 @@ var DOCS_START_MARKER = '<!-- START OF GENERATED DOCS -->';
 var DOCS_END_MARKER   = '<!-- END OF GENERATED DOCS -->';
 
 // Load apis
-var apis        = require('../lib/apis');
+var apis        = require('../src/apis');
 
 /** Save APIs to apis.js */
 var saveApis = function() {
   // Path to apis.js file
-  var apis_js = path.join(__dirname, '../lib', 'apis.js');
+  var apis_js = path.join(__dirname, '../src', 'apis.js');
   // Create content
   // Use json-stable-stringify rather than JSON.stringify to guarantee
   // consistent ordering (see http://bugzil.la/1200519)
@@ -119,17 +118,6 @@ var updateDocs = function() {
   fs.writeFileSync(readmePath, before + docs + after, {encoding: 'utf-8'});
 };
 
-/** Create browserify module */
-var browserifyModule = function() {
-  var bundlePath = path.join(__dirname, '..', 'taskcluster-client.js');
-  browserify({
-    standalone: 'taskcluster'
-  })
-  .add(path.join(__dirname, '..', 'browser.js'))
-  .bundle()
-  .pipe(fs.createWriteStream(bundlePath));
-};
-
 program
   .command('list')
   .description("List API references and names stored")
@@ -185,7 +173,6 @@ program
     p = p.then(function() {
       updateDocs();
       saveApis();
-      browserifyModule();
     });
 
     p.catch(function(err) {
@@ -206,7 +193,6 @@ program
     delete apis[name];
     updateDocs();
     saveApis();
-    browserifyModule();
     console.log("Removed: " + name);
   });
 
@@ -215,13 +201,6 @@ program
   .description('Generate documentation in README.md')
   .action(function() {
     updateDocs();
-  });
-
-program
-  .command('browserify')
-  .description('Generate browserify bundle for this module')
-  .action(function() {
-    browserifyModule();
   });
 
 // Show help on unknown action
