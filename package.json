@@ -6,9 +6,10 @@
   "license": "MPL-2.0",
   "scripts": {
     "compile": "babel-compile -p taskcluster src:lib test:.test",
-    "prepublish": "npm run compile",
-    "pretest": "npm run compile",
-    "test": "mocha .test/lint.js ./.test/*_test.js"
+    "prepare": "yarn compile",
+    "pretest": "yarn lint && yarn compile",
+    "lint": "eslint src/*.js test/*.js",
+    "test": "mocha ./.test/*_test.js"
   },
   "repository": {
     "type": "git",
@@ -32,15 +33,12 @@
   "devDependencies": {
     "babel": "^6.23.0",
     "babel-compile": "^2.0.0",
-    "babel-eslint": "^8.0.1",
     "babel-preset-taskcluster": "^3.0.0",
     "cliff": "^0.1.10",
     "commander": "^2.11.0",
-    "eslint-config-taskcluster": "^2.0.0",
-    "eslint-plugin-taskcluster": "^1.0.2",
+    "eslint-config-taskcluster": "^3.0.0",
     "json-stable-stringify": "^1.0.0",
     "mocha": "^4.0.1",
-    "mocha-eslint": "^3.0.1",
     "nock": "^9.0.22",
     "pulse-publisher": "^2.0.0",
     "source-map-support": "^0.5.0",
