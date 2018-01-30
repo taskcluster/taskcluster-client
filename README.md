@@ -133,18 +133,6 @@ listener.bind({
 Note that the argument to the `message` event will not have the `routing`
 property described above, although the `routingKey` property will be present.
 
-### Web Listener
-Listening to  events can be done using a `WebListener`. All steps are identical to using `PulseListener` except in initializing the listener. While PulseListener opens a TCP socket
-to `pulse.mozilla.org` directly, a WebListener will connect to `events.taskcluster.net`
-using a websocket. In addition, `PulseListener` cannot be used on
-the browser.
-
-```javascript
-var listener = new taskcluster.WebListener({
-  baseUrl: undefined // defaults to: https://events.taskcluster.net/v1
-});
-```
-
 ## Advanced Listening
 
 For advanced queue usage the `connect` method can be used to
