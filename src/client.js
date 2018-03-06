@@ -57,6 +57,10 @@ var _defaultOptions = {
   randomizationFactor: 0.25,
   // Maximum retry delay (defaults to 30 seconds)
   maxDelay:       30 * 1000,
+
+  // The prefix of any api calls. e.g. https://taskcluster.net/api/
+  // This name is not the best but it will work for now
+  base: process.env.TASKCLUSTER_BASE,
 };
 
 /** Make a request for a Client instance */
@@ -125,13 +129,16 @@ var makeRequest = function(client, method, url, payload, query) {
  *   // Limit the set of scopes requests with this client may make.
  *   // Note, that your clientId must have a superset of the these scopes.
  *   authorizedScopes:  ['scope1', 'scope2', ...]
- *   baseUrl:         'http://.../v1'   // baseUrl for API requests
- *   exchangePrefix:  'queue/v1/'       // exchangePrefix prefix
- *   retries:         5,                // Maximum number of retries
- *   monitor:         await Monitor()   // From taskcluster-lib-monitor
+ *   baseUrl:         'http://.../v1'                // baseUrl for API requests
+ *   exchangePrefix:  'queue/v1/'                    // exchangePrefix prefix
+ *   retries:         5,                             // Maximum number of retries
+ *   monitor:         await Monitor()                // From taskcluster-lib-monitor
+ *   base:            'https://taskcluster.net/api/' // prefix for all api calls
  * }
  *
  * `baseUrl` and `exchangePrefix` defaults to values from reference.
+ *
+ * `base` will override `basUrl` and make it do nothing... write more here!
  */
 exports.createClient = function(reference, name) {
   if (!name || typeof name !== 'string') {
@@ -147,6 +154,11 @@ exports.createClient = function(reference, name) {
 
     // Remove possible trailing slash from baseUrl
     this._options.baseUrl = this._options.baseUrl.replace(/\/$/, '');
+
+    if (this._options.base) {
+      const urlPrefix = reference.name || reference.baseUrl.split('//')[1].split('.')[0];
+      this._options.baseUrl = `${this._options.base}/${urlPrefix}`;
+    }
 
     if (this._options.stats) {
       throw new Error('options.stats is now deprecated! Use options.monitor instead.');
