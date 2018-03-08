@@ -138,7 +138,7 @@ var makeRequest = function(client, method, url, payload, query) {
  *
  * `baseUrl` and `exchangePrefix` defaults to values from reference.
  *
- * `base` will override `basUrl` and make it do nothing... write more here!
+ * `base` will override `baseUrl` if provided.
  */
 exports.createClient = function(reference, name) {
   if (!name || typeof name !== 'string') {
@@ -157,7 +157,7 @@ exports.createClient = function(reference, name) {
 
     if (this._options.base) {
       const urlPrefix = reference.name || reference.baseUrl.split('//')[1].split('.')[0];
-      this._options.baseUrl = `${this._options.base}/${urlPrefix}`;
+      this._options.baseUrl = `${this._options.base}/${urlPrefix}/v${reference.version + 1}`;
     }
 
     if (this._options.stats) {
