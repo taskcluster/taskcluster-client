@@ -145,10 +145,10 @@ suite('client requests/responses', function() {
 
   const subjects = {
     old: {
-      name: 'baseurl with no base set',
+      name: 'baseurl with no rootUrl set',
       urlPrefix: 'https://fake.taskcluster.net',
       Fake: taskcluster.createClient(referenceBaseUrlStyle),
-      base: null,
+      rootUrl: null,
       client: (() => {
         const Fake = taskcluster.createClient(referenceBaseUrlStyle);
         return new Fake({
@@ -160,14 +160,14 @@ suite('client requests/responses', function() {
       })(),
     },
     bothWays: {
-      name: 'baseurl and base with base set',
+      name: 'baseurl and rootUrl with rootUrl set',
       urlPrefix: 'https://whatever.net/fake1',
       Fake: taskcluster.createClient(referenceBothStyle),
-      base: 'https://whatever.net',
+      rootUrl: 'https://whatever.net',
       client: (() => {
         const Fake = taskcluster.createClient(referenceBothStyle);
         return new Fake({
-          base: 'https://whatever.net',
+          rootUrl: 'https://whatever.net',
           credentials: {
             clientId: 'nobody',
             accessToken: 'nothing',
@@ -175,15 +175,15 @@ suite('client requests/responses', function() {
         });
       })(),
     },
-    justBase: {
-      name: 'base set via constructor',
+    justRootUrl: {
+      name: 'rootUrl set via constructor',
       urlPrefix: 'https://whatever.net/fake2',
       Fake: taskcluster.createClient(referenceNameStyle),
-      base: 'https://whatever.net',
+      rootUrl: 'https://whatever.net',
       client: (() => {
         const Fake = taskcluster.createClient(referenceNameStyle);
         return new Fake({
-          base: 'https://whatever.net',
+          rootUrl: 'https://whatever.net',
           credentials: {
             clientId: 'nobody',
             accessToken: 'nothing',
@@ -191,15 +191,15 @@ suite('client requests/responses', function() {
         });
       })(),
     },
-    baseWithPath: {
-      name: 'base set via constructor with path',
+    rootUrlWithPath: {
+      name: 'rootUrl set via constructor with path',
       urlPrefix: 'https://whatever.net/api/fake2',
       Fake: taskcluster.createClient(referenceNameStyle),
-      base: 'https://whatever.net/api',
+      rootUrl: 'https://whatever.net/api',
       client: (() => {
         const Fake = taskcluster.createClient(referenceNameStyle);
         return new Fake({
-          base: 'https://whatever.net/api',
+          rootUrl: 'https://whatever.net/api',
           credentials: {
             clientId: 'nobody',
             accessToken: 'nothing',
@@ -207,15 +207,15 @@ suite('client requests/responses', function() {
         });
       })(),
     },
-    baseWithPathAndSubdomain: {
-      name: 'base set via constructor with path and subdomain',
+    rootUrlWithPathAndSubdomain: {
+      name: 'rootUrl set via constructor with path and subdomain',
       urlPrefix: 'https://foo.whatever.net/api/fake2',
       Fake: taskcluster.createClient(referenceNameStyle),
-      base: 'https://foo.whatever.net/api',
+      rootUrl: 'https://foo.whatever.net/api',
       client: (() => {
         const Fake = taskcluster.createClient(referenceNameStyle);
         return new Fake({
-          base: 'https://foo.whatever.net/api',
+          rootUrl: 'https://foo.whatever.net/api',
           credentials: {
             clientId: 'nobody',
             accessToken: 'nothing',
@@ -224,12 +224,12 @@ suite('client requests/responses', function() {
       })(),
     },
     usingEnvVar: {
-      name: 'base set via env var',
+      name: 'rootUrl set via env var',
       urlPrefix: 'https://whatever.net/fake2',
       Fake: taskcluster.createClient(referenceNameStyle),
-      base: 'https://whatever.net',
+      rootUrl: 'https://whatever.net',
       client: (() => {
-        process.env.TASKCLUSTER_BASE = 'https://whatever.net';
+        process.env.TASKCLUSTER_ROOT = 'https://whatever.net';
         const clientPath = path.resolve(__dirname, '..', 'lib', 'client.js');
         delete require.cache[clientPath];
         const cleanClient = require(clientPath);
@@ -240,7 +240,7 @@ suite('client requests/responses', function() {
             accessToken: 'nothing',
           },
         });
-        delete process.env.TASKCLUSTER_BASE;
+        delete process.env.TASKCLUSTER_ROOT;
         return fake;
       })(),
     },
@@ -272,7 +272,7 @@ suite('client requests/responses', function() {
   };
 
   Object.keys(subjects).forEach(subject => {
-    const {name, urlPrefix, client, Fake, base} = subjects[subject];
+    const {name, urlPrefix, client, Fake, rootUrl} = subjects[subject];
     suite(name, () => {
       test('Simple GET', async () => {
         nock(urlPrefix).get('/v1/get-test')
@@ -380,21 +380,21 @@ suite('client requests/responses', function() {
       test('GET public resource', async () => {
         nock(urlPrefix).get('/v1/get-test')
           .reply(200, {});
-        let c = new Fake({base});
+        let c = new Fake({rootUrl});
         await c.get();
       });
 
       test('GET public resource with query-string', async () => {
         nock(urlPrefix).get('/v1/query/test?option=31')
           .reply(200, {});
-        let c = new Fake({base});
+        let c = new Fake({rootUrl});
         await c.query({option: 31});
       });
 
       test('GET public resource no query-string (supported method)', async () => {
         nock(urlPrefix).get('/v1/query/test')
           .reply(200, {});
-        let c = new Fake({base});
+        let c = new Fake({rootUrl});
         await c.query();
       });
 
@@ -448,7 +448,7 @@ suite('client requests/responses', function() {
             accessToken:  'secret',
           },
           monitor,
-          base,
+          rootUrl,
         });
         // Inspect the credentials
         nock(urlPrefix).get('/v1/get-test')
@@ -469,7 +469,7 @@ suite('client requests/responses', function() {
             accessToken:  'wrong',
           },
           monitor,
-          base,
+          rootUrl,
         });
         // Inspect the credentials
         nock(urlPrefix).get('/v1/get-test')

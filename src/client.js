@@ -59,8 +59,7 @@ var _defaultOptions = {
   maxDelay:       30 * 1000,
 
   // The prefix of any api calls. e.g. https://taskcluster.net/api/
-  // This name is not the best but it will work for now
-  base: process.env.TASKCLUSTER_BASE,
+  rootUrl: process.env.TASKCLUSTER_ROOT,
 };
 
 /** Make a request for a Client instance */
@@ -133,12 +132,12 @@ var makeRequest = function(client, method, url, payload, query) {
  *   exchangePrefix:  'queue/v1/'                    // exchangePrefix prefix
  *   retries:         5,                             // Maximum number of retries
  *   monitor:         await Monitor()                // From taskcluster-lib-monitor
- *   base:            'https://taskcluster.net/api/' // prefix for all api calls
+ *   rootUrl:         'https://taskcluster.net/api/' // prefix for all api calls
  * }
  *
  * `baseUrl` and `exchangePrefix` defaults to values from reference.
  *
- * `base` will override `baseUrl` if provided.
+ * `rootUrl` will override `baseUrl` if provided.
  */
 exports.createClient = function(reference, name) {
   if (!name || typeof name !== 'string') {
@@ -155,9 +154,10 @@ exports.createClient = function(reference, name) {
     // Remove possible trailing slash from baseUrl
     this._options.baseUrl = this._options.baseUrl.replace(/\/$/, '');
 
-    if (this._options.base) {
+    if (this._options.rootUrl) {
+      // We can remove the second half of this assignment once all api definitions are upgraded to have `name`
       const urlPrefix = reference.name || reference.baseUrl.split('//')[1].split('.')[0];
-      this._options.baseUrl = `${this._options.base}/${urlPrefix}/v${reference.version + 1}`;
+      this._options.baseUrl = `${this._options.rootUrl}/${urlPrefix}/v${reference.version + 1}`;
     }
 
     if (this._options.stats) {
