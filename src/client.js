@@ -331,6 +331,8 @@ exports.createClient = function(reference, name) {
               err.body = res.body;
               err.code = res.body.code || 'UnknownError';
               err.statusCode = res.status;
+              err.api = entry.name;
+              err.args = args;
               if (monitor) {
                 var d = process.hrtime(start);
 

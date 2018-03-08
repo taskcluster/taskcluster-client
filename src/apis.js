@@ -48,11 +48,16 @@ module.exports = {
           "query": [
           ],
           "route": "/clients/<clientId>",
-          "scopes": [
-            [
-              "auth:create-client:<clientId>"
+          "scopes": {
+            "AllOf": [
+              "auth:create-client:<clientId>",
+              {
+                "each": "<scope>",
+                "for": "scope",
+                "in": "scopes"
+              }
             ]
-          ],
+          },
           "stability": "stable",
           "title": "Create Client",
           "type": "function"
@@ -68,11 +73,7 @@ module.exports = {
           "query": [
           ],
           "route": "/clients/<clientId>/reset",
-          "scopes": [
-            [
-              "auth:reset-access-token:<clientId>"
-            ]
-          ],
+          "scopes": "auth:reset-access-token:<clientId>",
           "stability": "stable",
           "title": "Reset `accessToken`",
           "type": "function"
@@ -89,11 +90,16 @@ module.exports = {
           "query": [
           ],
           "route": "/clients/<clientId>",
-          "scopes": [
-            [
-              "auth:update-client:<clientId>"
+          "scopes": {
+            "AllOf": [
+              "auth:update-client:<clientId>",
+              {
+                "each": "<scope>",
+                "for": "scope",
+                "in": "scopesAdded"
+              }
             ]
-          ],
+          },
           "stability": "stable",
           "title": "Update Client",
           "type": "function"
@@ -109,11 +115,7 @@ module.exports = {
           "query": [
           ],
           "route": "/clients/<clientId>/enable",
-          "scopes": [
-            [
-              "auth:enable-client:<clientId>"
-            ]
-          ],
+          "scopes": "auth:enable-client:<clientId>",
           "stability": "stable",
           "title": "Enable Client",
           "type": "function"
@@ -129,11 +131,7 @@ module.exports = {
           "query": [
           ],
           "route": "/clients/<clientId>/disable",
-          "scopes": [
-            [
-              "auth:disable-client:<clientId>"
-            ]
-          ],
+          "scopes": "auth:disable-client:<clientId>",
           "stability": "stable",
           "title": "Disable Client",
           "type": "function"
@@ -148,11 +146,7 @@ module.exports = {
           "query": [
           ],
           "route": "/clients/<clientId>",
-          "scopes": [
-            [
-              "auth:delete-client:<clientId>"
-            ]
-          ],
+          "scopes": "auth:delete-client:<clientId>",
           "stability": "stable",
           "title": "Delete Client",
           "type": "function"
@@ -190,7 +184,7 @@ module.exports = {
           "args": [
             "roleId"
           ],
-          "description": "Create a new role.\n\nThe caller's scopes must satisfy the new role's scopes.\n\nIf there already exists a role with the same `roleId` this operation\nwill fail. Use `updateRole` to modify an existing role.",
+          "description": "Create a new role.\n\nThe caller's scopes must satisfy the new role's scopes.\n\nIf there already exists a role with the same `roleId` this operation\nwill fail. Use `updateRole` to modify an existing role.\n\nCreation of a role that will generate an infinite expansion will result\nin an error response.",
           "input": "http://schemas.taskcluster.net/auth/v1/create-role-request.json#",
           "method": "put",
           "name": "createRole",
@@ -198,11 +192,16 @@ module.exports = {
           "query": [
           ],
           "route": "/roles/<roleId>",
-          "scopes": [
-            [
-              "auth:create-role:<roleId>"
+          "scopes": {
+            "AllOf": [
+              "auth:create-role:<roleId>",
+              {
+                "each": "<scope>",
+                "for": "scope",
+                "in": "scopes"
+              }
             ]
-          ],
+          },
           "stability": "stable",
           "title": "Create Role",
           "type": "function"
@@ -211,7 +210,7 @@ module.exports = {
           "args": [
             "roleId"
           ],
-          "description": "Update an existing role.\n\nThe caller's scopes must satisfy all of the new scopes being added, but\nneed not satisfy all of the client's existing scopes.",
+          "description": "Update an existing role.\n\nThe caller's scopes must satisfy all of the new scopes being added, but\nneed not satisfy all of the client's existing scopes.\n\nAn update of a role that will generate an infinite expansion will result\nin an error response.",
           "input": "http://schemas.taskcluster.net/auth/v1/create-role-request.json#",
           "method": "post",
           "name": "updateRole",
@@ -219,11 +218,16 @@ module.exports = {
           "query": [
           ],
           "route": "/roles/<roleId>",
-          "scopes": [
-            [
-              "auth:update-role:<roleId>"
+          "scopes": {
+            "AllOf": [
+              "auth:update-role:<roleId>",
+              {
+                "each": "<scope>",
+                "for": "scope",
+                "in": "scopesAdded"
+              }
             ]
-          ],
+          },
           "stability": "stable",
           "title": "Update Role",
           "type": "function"
@@ -238,11 +242,7 @@ module.exports = {
           "query": [
           ],
           "route": "/roles/<roleId>",
-          "scopes": [
-            [
-              "auth:delete-role:<roleId>"
-            ]
-          ],
+          "scopes": "auth:delete-role:<roleId>",
           "stability": "stable",
           "title": "Delete Role",
           "type": "function"
@@ -250,9 +250,24 @@ module.exports = {
         {
           "args": [
           ],
-          "description": "Return an expanded copy of the given scopeset, with scopes implied by any\nroles included.",
+          "description": "Return an expanded copy of the given scopeset, with scopes implied by any\nroles included.\n\nThis call uses the GET method with an HTTP body.  It remains only for\nbackward compatibility.",
           "input": "http://schemas.taskcluster.net/auth/v1/scopeset.json#",
           "method": "get",
+          "name": "expandScopesGet",
+          "output": "http://schemas.taskcluster.net/auth/v1/scopeset.json#",
+          "query": [
+          ],
+          "route": "/scopes/expand",
+          "stability": "deprecated",
+          "title": "Expand Scopes",
+          "type": "function"
+        },
+        {
+          "args": [
+          ],
+          "description": "Return an expanded copy of the given scopeset, with scopes implied by any\nroles included.",
+          "input": "http://schemas.taskcluster.net/auth/v1/scopeset.json#",
+          "method": "post",
           "name": "expandScopes",
           "output": "http://schemas.taskcluster.net/auth/v1/scopeset.json#",
           "query": [
@@ -290,11 +305,16 @@ module.exports = {
             "format"
           ],
           "route": "/aws/s3/<level>/<bucket>/<prefix>",
-          "scopes": [
-            [
-              "auth:aws-s3:<level>:<bucket>/<prefix>"
-            ]
-          ],
+          "scopes": {
+            "else": "auth:aws-s3:read-write:<bucket>/<prefix>",
+            "if": "levelIsReadOnly",
+            "then": {
+              "AnyOf": [
+                "auth:aws-s3:read-only:<bucket>/<prefix>",
+                "auth:aws-s3:read-write:<bucket>/<prefix>"
+              ]
+            }
+          },
           "stability": "stable",
           "title": "Get Temporary Read/Write Credentials S3",
           "type": "function"
@@ -309,11 +329,7 @@ module.exports = {
           "query": [
           ],
           "route": "/azure/accounts",
-          "scopes": [
-            [
-              "auth:azure-table:list-accounts"
-            ]
-          ],
+          "scopes": "auth:azure-table:list-accounts",
           "stability": "stable",
           "title": "List Accounts Managed by Auth",
           "type": "function"
@@ -330,11 +346,7 @@ module.exports = {
             "continuationToken"
           ],
           "route": "/azure/<account>/tables",
-          "scopes": [
-            [
-              "auth:azure-table:list-tables:<account>"
-            ]
-          ],
+          "scopes": "auth:azure-table:list-tables:<account>",
           "stability": "stable",
           "title": "List Tables in an Account Managed by Auth",
           "type": "function"
@@ -352,13 +364,35 @@ module.exports = {
           "query": [
           ],
           "route": "/azure/<account>/table/<table>/<level>",
-          "scopes": [
-            [
-              "auth:azure-table:<level>:<account>/<table>"
-            ]
-          ],
+          "scopes": {
+            "else": "auth:azure-table:read-write:<account>/<table>",
+            "if": "levelIsReadOnly",
+            "then": {
+              "AnyOf": [
+                "auth:azure-table:read-only:<account>/<table>",
+                "auth:azure-table:read-write:<account>/<table>"
+              ]
+            }
+          },
           "stability": "stable",
           "title": "Get Shared-Access-Signature for Azure Table",
+          "type": "function"
+        },
+        {
+          "args": [
+            "account"
+          ],
+          "description": "Retrieve a list of all containers in an account.",
+          "method": "get",
+          "name": "azureContainers",
+          "output": "http://schemas.taskcluster.net/auth/v1/azure-container-list-response.json#",
+          "query": [
+            "continuationToken"
+          ],
+          "route": "/azure/<account>/containers",
+          "scopes": "auth:azure-container:list-containers:<account>",
+          "stability": "stable",
+          "title": "List containers in an Account Managed by Auth",
           "type": "function"
         },
         {
@@ -369,18 +403,23 @@ module.exports = {
           ],
           "description": "Get a shared access signature (SAS) string for use with a specific Azure\nBlob Storage container.\n\nThe `level` parameter can be `read-write` or `read-only` and determines\nwhich type of credentials are returned.  If level is read-write, it will create the\ncontainer if it doesn't already exist.",
           "method": "get",
-          "name": "azureBlobSAS",
-          "output": "http://schemas.taskcluster.net/auth/v1/azure-blob-response.json#",
+          "name": "azureContainerSAS",
+          "output": "http://schemas.taskcluster.net/auth/v1/azure-container-response.json#",
           "query": [
           ],
           "route": "/azure/<account>/containers/<container>/<level>",
-          "scopes": [
-            [
-              "auth:azure-blob:<level>:<account>/<container>"
-            ]
-          ],
+          "scopes": {
+            "else": "auth:azure-container:read-write:<account>/<container>",
+            "if": "levelIsReadOnly",
+            "then": {
+              "AnyOf": [
+                "auth:azure-container:read-only:<account>/<container>",
+                "auth:azure-container:read-write:<account>/<container>"
+              ]
+            }
+          },
           "stability": "stable",
-          "title": "Get Shared-Access-Signature for Azure Blob",
+          "title": "Get Shared-Access-Signature for Azure Container",
           "type": "function"
         },
         {
@@ -394,11 +433,7 @@ module.exports = {
           "query": [
           ],
           "route": "/sentry/<project>/dsn",
-          "scopes": [
-            [
-              "auth:sentry:<project>"
-            ]
-          ],
+          "scopes": "auth:sentry:<project>",
           "stability": "stable",
           "title": "Get DSN for Sentry Project",
           "type": "function"
@@ -414,11 +449,7 @@ module.exports = {
           "query": [
           ],
           "route": "/statsum/<project>/token",
-          "scopes": [
-            [
-              "auth:statsum:<project>"
-            ]
-          ],
+          "scopes": "auth:statsum:<project>",
           "stability": "stable",
           "title": "Get Token for Statsum Project",
           "type": "function"
@@ -433,11 +464,7 @@ module.exports = {
           "query": [
           ],
           "route": "/webhooktunnel",
-          "scopes": [
-            [
-              "auth:webhooktunnel"
-            ]
-          ],
+          "scopes": "auth:webhooktunnel",
           "stability": "stable",
           "title": "Get Token for Webhooktunnel Proxy",
           "type": "function"
@@ -979,6 +1006,402 @@ module.exports = {
     },
     "referenceUrl": "http://references.taskcluster.net/aws-provisioner/v1/exchanges.json"
   },
+  "EC2Manager": {
+    "reference": {
+      "$schema": "http://schemas.taskcluster.net/base/v1/api-reference.json#",
+      "baseUrl": "localhost:5555/v1",
+      "description": "A taskcluster service which manages EC2 instances.  This service does not understand any taskcluster concepts intrinsicaly other than using the name `workerType` to refer to a group of associated instances.  Unless you are working on building a provisioner for AWS, you almost certainly do not want to use this service",
+      "entries": [
+        {
+          "args": [
+          ],
+          "description": "This method is only for debugging the ec2-manager",
+          "method": "get",
+          "name": "listWorkerTypes",
+          "output": "http://schemas.taskcluster.net/ec2-manager/v1/list-worker-types.json#",
+          "query": [
+          ],
+          "route": "/worker-types",
+          "stability": "experimental",
+          "title": "See the list of worker types which are known to be managed",
+          "type": "function"
+        },
+        {
+          "args": [
+            "workerType"
+          ],
+          "description": "Request an instance of a worker type",
+          "input": "http://schemas.taskcluster.net/ec2-manager/v1/run-instance-request.json#",
+          "method": "put",
+          "name": "runInstance",
+          "query": [
+          ],
+          "route": "/worker-types/<workerType>/instance",
+          "scopes": [
+            [
+              "ec2-manager:manage-resources:<workerType>"
+            ]
+          ],
+          "stability": "experimental",
+          "title": "Run an instance",
+          "type": "function"
+        },
+        {
+          "args": [
+            "workerType"
+          ],
+          "description": "Terminate all instances for this worker type",
+          "method": "delete",
+          "name": "terminateWorkerType",
+          "query": [
+          ],
+          "route": "/worker-types/<workerType>/resources",
+          "scopes": [
+            [
+              "ec2-manager:manage-resources:<workerType>"
+            ]
+          ],
+          "stability": "experimental",
+          "title": "Terminate all resources from a worker type",
+          "type": "function"
+        },
+        {
+          "args": [
+            "workerType"
+          ],
+          "description": "Return an object which has a generic state description. This only contains counts of instances",
+          "method": "get",
+          "name": "workerTypeStats",
+          "output": "http://schemas.taskcluster.net/ec2-manager/v1/worker-type-resources.json#",
+          "query": [
+          ],
+          "route": "/worker-types/<workerType>/stats",
+          "stability": "experimental",
+          "title": "Look up the resource stats for a workerType",
+          "type": "function"
+        },
+        {
+          "args": [
+            "workerType"
+          ],
+          "description": "Return a view of the health of a given worker type",
+          "method": "get",
+          "name": "workerTypeHealth",
+          "output": "http://schemas.taskcluster.net/ec2-manager/v1/health.json#",
+          "query": [
+          ],
+          "route": "/worker-types/<workerType>/health",
+          "stability": "experimental",
+          "title": "Look up the resource health for a workerType",
+          "type": "function"
+        },
+        {
+          "args": [
+            "workerType"
+          ],
+          "description": "Return a list of the most recent errors encountered by a worker type",
+          "method": "get",
+          "name": "workerTypeErrors",
+          "output": "http://schemas.taskcluster.net/ec2-manager/v1/errors.json#",
+          "query": [
+          ],
+          "route": "/worker-types/<workerType>/errors",
+          "stability": "experimental",
+          "title": "Look up the most recent errors of a workerType",
+          "type": "function"
+        },
+        {
+          "args": [
+            "workerType"
+          ],
+          "description": "Return state information for a given worker type",
+          "method": "get",
+          "name": "workerTypeState",
+          "output": "http://schemas.taskcluster.net/ec2-manager/v1/worker-type-state.json#",
+          "query": [
+          ],
+          "route": "/worker-types/<workerType>/state",
+          "stability": "experimental",
+          "title": "Look up the resource state for a workerType",
+          "type": "function"
+        },
+        {
+          "args": [
+            "name"
+          ],
+          "description": "Idempotently ensure that a keypair of a given name exists",
+          "input": "http://schemas.taskcluster.net/ec2-manager/v1/create-key-pair.json#",
+          "method": "get",
+          "name": "ensureKeyPair",
+          "query": [
+          ],
+          "route": "/key-pairs/<name>",
+          "scopes": [
+            [
+              "ec2-manager:manage-key-pairs:<name>"
+            ]
+          ],
+          "stability": "experimental",
+          "title": "Ensure a KeyPair for a given worker type exists",
+          "type": "function"
+        },
+        {
+          "args": [
+            "name"
+          ],
+          "description": "Ensure that a keypair of a given name does not exist.",
+          "method": "delete",
+          "name": "removeKeyPair",
+          "query": [
+          ],
+          "route": "/key-pairs/<name>",
+          "scopes": [
+            [
+              "ec2-manager:manage-key-pairs:<name>"
+            ]
+          ],
+          "stability": "experimental",
+          "title": "Ensure a KeyPair for a given worker type does not exist",
+          "type": "function"
+        },
+        {
+          "args": [
+            "region",
+            "instanceId"
+          ],
+          "description": "Terminate an instance in a specified region",
+          "method": "delete",
+          "name": "terminateInstance",
+          "query": [
+          ],
+          "route": "/region/<region>/instance/<instanceId>",
+          "scopes": [
+            [
+              "ec2-manager:manage-instances:<region>:<instanceId>"
+            ],
+            [
+              "ec2-manager:manage-resources:<workerType>"
+            ]
+          ],
+          "stability": "experimental",
+          "title": "Terminate an instance",
+          "type": "function"
+        },
+        {
+          "args": [
+          ],
+          "description": "Return a list of possible prices for EC2",
+          "method": "get",
+          "name": "getPrices",
+          "output": "http://schemas.taskcluster.net/ec2-manager/v1/prices.json#",
+          "query": [
+          ],
+          "route": "/prices",
+          "stability": "experimental",
+          "title": "Request prices for EC2",
+          "type": "function"
+        },
+        {
+          "args": [
+          ],
+          "description": "Return a list of possible prices for EC2",
+          "input": "http://schemas.taskcluster.net/ec2-manager/v1/prices-request.json#",
+          "method": "post",
+          "name": "getSpecificPrices",
+          "output": "http://schemas.taskcluster.net/ec2-manager/v1/prices.json#",
+          "query": [
+          ],
+          "route": "/prices",
+          "stability": "experimental",
+          "title": "Request prices for EC2",
+          "type": "function"
+        },
+        {
+          "args": [
+          ],
+          "description": "Give some basic stats on the health of our EC2 account",
+          "method": "get",
+          "name": "getHealth",
+          "output": "http://schemas.taskcluster.net/ec2-manager/v1/health.json#",
+          "query": [
+          ],
+          "route": "/health",
+          "stability": "experimental",
+          "title": "Get EC2 account health metrics",
+          "type": "function"
+        },
+        {
+          "args": [
+          ],
+          "description": "Return a list of recent errors encountered",
+          "method": "get",
+          "name": "getRecentErrors",
+          "output": "http://schemas.taskcluster.net/ec2-manager/v1/errors.json#",
+          "query": [
+          ],
+          "route": "/errors",
+          "stability": "experimental",
+          "title": "Look up the most recent errors in the provisioner across all worker types",
+          "type": "function"
+        },
+        {
+          "args": [
+          ],
+          "description": "This method is only for debugging the ec2-manager",
+          "method": "get",
+          "name": "regions",
+          "query": [
+          ],
+          "route": "/internal/regions",
+          "scopes": [
+            [
+              "ec2-manager:internals"
+            ]
+          ],
+          "stability": "experimental",
+          "title": "See the list of regions managed by this ec2-manager",
+          "type": "function"
+        },
+        {
+          "args": [
+          ],
+          "description": "List AMIs and their usage by returning a list of objects in the form:\n{\nregion: string\n\tvolumetype: string\n\tlastused: timestamp\n}",
+          "method": "get",
+          "name": "amiUsage",
+          "query": [
+          ],
+          "route": "/internal/ami-usage",
+          "scopes": [
+            [
+              "ec2-manager:internals"
+            ]
+          ],
+          "stability": "experimental",
+          "title": "See the list of AMIs and their usage",
+          "type": "function"
+        },
+        {
+          "args": [
+          ],
+          "description": "Lists current EBS volume usage by returning a list of objects that are uniquely defined by {region, volumetype, state} in the form:\n{\nregion: string,\n\tvolumetype: string,\n\tstate: string,\n\ttotalcount: integer,\n\ttotalgb: integer,\n\ttouched: timestamp (last time that information was updated),\n}",
+          "method": "get",
+          "name": "ebsUsage",
+          "query": [
+          ],
+          "route": "/internal/ebs-usage",
+          "scopes": [
+            [
+              "ec2-manager:internals"
+            ]
+          ],
+          "stability": "experimental",
+          "title": "See the current EBS volume usage list",
+          "type": "function"
+        },
+        {
+          "args": [
+          ],
+          "description": "This method is only for debugging the ec2-manager",
+          "method": "get",
+          "name": "dbpoolStats",
+          "query": [
+          ],
+          "route": "/internal/db-pool-stats",
+          "scopes": [
+            [
+              "ec2-manager:internals"
+            ]
+          ],
+          "stability": "experimental",
+          "title": "Statistics on the Database client pool",
+          "type": "function"
+        },
+        {
+          "args": [
+          ],
+          "description": "This method is only for debugging the ec2-manager",
+          "method": "get",
+          "name": "allState",
+          "query": [
+          ],
+          "route": "/internal/all-state",
+          "scopes": [
+            [
+              "ec2-manager:internals"
+            ]
+          ],
+          "stability": "experimental",
+          "title": "List out the entire internal state",
+          "type": "function"
+        },
+        {
+          "args": [
+          ],
+          "description": "This method is only for debugging the ec2-manager",
+          "method": "get",
+          "name": "sqsStats",
+          "query": [
+          ],
+          "route": "/internal/sqs-stats",
+          "scopes": [
+            [
+              "ec2-manager:internals"
+            ]
+          ],
+          "stability": "experimental",
+          "title": "Statistics on the sqs queues",
+          "type": "function"
+        },
+        {
+          "args": [
+          ],
+          "description": "This method is only for debugging the ec2-manager",
+          "method": "get",
+          "name": "purgeQueues",
+          "query": [
+          ],
+          "route": "/internal/purge-queues",
+          "scopes": [
+            [
+              "ec2-manager:internals"
+            ]
+          ],
+          "stability": "experimental",
+          "title": "Purge the SQS queues",
+          "type": "function"
+        },
+        {
+          "args": [
+          ],
+          "description": "Generate an API reference for this service",
+          "method": "get",
+          "name": "apiReference",
+          "query": [
+          ],
+          "route": "/internal/api-reference",
+          "stability": "experimental",
+          "title": "API Reference",
+          "type": "function"
+        },
+        {
+          "args": [
+          ],
+          "description": "Respond without doing anything.\nThis endpoint is used to check that the service is up.",
+          "method": "get",
+          "name": "ping",
+          "query": [
+          ],
+          "route": "/ping",
+          "stability": "stable",
+          "title": "Ping Server",
+          "type": "function"
+        }
+      ],
+      "title": "EC2 Instance Manager",
+      "version": 0
+    },
+    "referenceUrl": "https://references.taskcluster.net/ec2-manager/v1/api.json"
+  },
   "Github": {
     "reference": {
       "$schema": "http://schemas.taskcluster.net/base/v1/api-reference.json#",
@@ -1078,11 +1501,7 @@ module.exports = {
           "query": [
           ],
           "route": "/repository/<owner>/<repo>/statuses/<sha>",
-          "scopes": [
-            [
-              "github:create-status:<owner>/<repo>"
-            ]
-          ],
+          "scopes": "github:create-status:<owner>/<repo>",
           "stability": "experimental",
           "title": "Post a status against a given changeset",
           "type": "function"
@@ -1100,11 +1519,7 @@ module.exports = {
           "query": [
           ],
           "route": "/repository/<owner>/<repo>/issues/<number>/comments",
-          "scopes": [
-            [
-              "github:create-comment:<owner>/<repo>"
-            ]
-          ],
+          "scopes": "github:create-comment:<owner>/<repo>",
           "stability": "experimental",
           "title": "Post a comment on a given GitHub Issue or Pull Request",
           "type": "function"
@@ -1123,7 +1538,7 @@ module.exports = {
           "type": "function"
         }
       ],
-      "title": "TaskCluster GitHub API Documentation",
+      "title": "Taskcluster GitHub API Documentation",
       "version": 0
     },
     "referenceUrl": "http://references.taskcluster.net/github/v1/api.json"
@@ -1228,7 +1643,7 @@ module.exports = {
         }
       ],
       "exchangePrefix": "exchange/taskcluster-github/v1/",
-      "title": "TaskCluster-Github Exchanges",
+      "title": "Taskcluster-Github Exchanges",
       "version": 0
     },
     "referenceUrl": "http://references.taskcluster.net/github/v1/exchanges.json"
@@ -1237,7 +1652,7 @@ module.exports = {
     "reference": {
       "$schema": "http://schemas.taskcluster.net/base/v1/api-reference.json#",
       "baseUrl": "https://hooks.taskcluster.net/v1",
-      "description": "Hooks are a mechanism for creating tasks in response to events.\n\nHooks are identified with a `hookGroupId` and a `hookId`.\n\nWhen an event occurs, the resulting task is automatically created.  The\ntask is created using the scope `assume:hook-id:<hookGroupId>/<hookId>`,\nwhich must have scopes to make the createTask call, including satisfying all\nscopes in `task.scopes`.  The new task has a `taskGroupId` equal to its\n`taskId`, as is the convention for decision tasks.\n\nHooks can have a \"schedule\" indicating specific times that new tasks should\nbe created.  Each schedule is in a simple cron format, per \nhttps://www.npmjs.com/package/cron-parser.  For example:\n * `['0 0 1 * * *']` -- daily at 1:00 UTC\n * `['0 0 9,21 * * 1-5', '0 0 12 * * 0,6']` -- weekdays at 9:00 and 21:00 UTC, weekends at noon",
+      "description": "Hooks are a mechanism for creating tasks in response to events.\n\nHooks are identified with a `hookGroupId` and a `hookId`.\n\nWhen an event occurs, the resulting task is automatically created.  The\ntask is created using the scope `assume:hook-id:<hookGroupId>/<hookId>`,\nwhich must have scopes to make the createTask call, including satisfying all\nscopes in `task.scopes`.  The new task has a `taskGroupId` equal to its\n`taskId`, as is the convention for decision tasks.\n\nHooks can have a \"schedule\" indicating specific times that new tasks should\nbe created.  Each schedule is in a simple cron format, per \nhttps://www.npmjs.com/package/cron-parser.  For example:\n * `['0 0 1 * * *']` -- daily at 1:00 UTC\n * `['0 0 9,21 * * 1-5', '0 0 12 * * 0,6']` -- weekdays at 9:00 and 21:00 UTC, weekends at noon\n\nThe task definition is used as a JSON-e template, with a context depending on how it is fired.  See\nhttps://docs.taskcluster.net/reference/core/taskcluster-hooks/docs/firing-hooks\nfor more information.",
       "entries": [
         {
           "args": [
@@ -1329,12 +1744,12 @@ module.exports = {
           "query": [
           ],
           "route": "/hooks/<hookGroupId>/<hookId>",
-          "scopes": [
-            [
+          "scopes": {
+            "AllOf": [
               "hooks:modify-hook:<hookGroupId>/<hookId>",
               "assume:hook-id:<hookGroupId>/<hookId>"
             ]
-          ],
+          },
           "stability": "experimental",
           "title": "Create a hook",
           "type": "function"
@@ -1352,12 +1767,12 @@ module.exports = {
           "query": [
           ],
           "route": "/hooks/<hookGroupId>/<hookId>",
-          "scopes": [
-            [
+          "scopes": {
+            "AllOf": [
               "hooks:modify-hook:<hookGroupId>/<hookId>",
               "assume:hook-id:<hookGroupId>/<hookId>"
             ]
-          ],
+          },
           "stability": "experimental",
           "title": "Update a hook",
           "type": "function"
@@ -1373,11 +1788,7 @@ module.exports = {
           "query": [
           ],
           "route": "/hooks/<hookGroupId>/<hookId>",
-          "scopes": [
-            [
-              "hooks:modify-hook:<hookGroupId>/<hookId>"
-            ]
-          ],
+          "scopes": "hooks:modify-hook:<hookGroupId>/<hookId>",
           "stability": "experimental",
           "title": "Delete a hook",
           "type": "function"
@@ -1387,19 +1798,15 @@ module.exports = {
             "hookGroupId",
             "hookId"
           ],
-          "description": "This endpoint will trigger the creation of a task from a hook definition.",
-          "input": "http://schemas.taskcluster.net/hooks/v1/trigger-payload.json",
+          "description": "This endpoint will trigger the creation of a task from a hook definition.\n\nThe HTTP payload must match the hooks `triggerSchema`.  If it does, it is\nprovided as the `payload` property of the JSON-e context used to render the\ntask template.",
+          "input": "http://schemas.taskcluster.net/hooks/v1/trigger-context.json",
           "method": "post",
           "name": "triggerHook",
           "output": "http://schemas.taskcluster.net/hooks/v1/task-status.json",
           "query": [
           ],
           "route": "/hooks/<hookGroupId>/<hookId>/trigger",
-          "scopes": [
-            [
-              "hooks:trigger-hook:<hookGroupId>/<hookId>"
-            ]
-          ],
+          "scopes": "hooks:trigger-hook:<hookGroupId>/<hookId>",
           "stability": "experimental",
           "title": "Trigger a hook",
           "type": "function"
@@ -1416,11 +1823,7 @@ module.exports = {
           "query": [
           ],
           "route": "/hooks/<hookGroupId>/<hookId>/token",
-          "scopes": [
-            [
-              "hooks:get-trigger-token:<hookGroupId>/<hookId>"
-            ]
-          ],
+          "scopes": "hooks:get-trigger-token:<hookGroupId>/<hookId>",
           "stability": "experimental",
           "title": "Get a trigger token",
           "type": "function"
@@ -1437,11 +1840,7 @@ module.exports = {
           "query": [
           ],
           "route": "/hooks/<hookGroupId>/<hookId>/token",
-          "scopes": [
-            [
-              "hooks:reset-trigger-token:<hookGroupId>/<hookId>"
-            ]
-          ],
+          "scopes": "hooks:reset-trigger-token:<hookGroupId>/<hookId>",
           "stability": "experimental",
           "title": "Reset a trigger token",
           "type": "function"
@@ -1452,8 +1851,8 @@ module.exports = {
             "hookId",
             "token"
           ],
-          "description": "This endpoint triggers a defined hook with a valid token.",
-          "input": "http://schemas.taskcluster.net/hooks/v1/trigger-payload.json",
+          "description": "This endpoint triggers a defined hook with a valid token.\n\nThe HTTP payload must match the hooks `triggerSchema`.  If it does, it is\nprovided as the `payload` property of the JSON-e context used to render the\ntask template.",
+          "input": "http://schemas.taskcluster.net/hooks/v1/trigger-context.json",
           "method": "post",
           "name": "triggerHookWithToken",
           "output": "http://schemas.taskcluster.net/hooks/v1/task-status.json",
@@ -1478,6 +1877,7 @@ module.exports = {
           "type": "function"
         }
       ],
+      "name": "hooks",
       "title": "Hooks API Documentation",
       "version": 0
     },
@@ -1509,14 +1909,31 @@ module.exports = {
             "namespace"
           ],
           "description": "List the namespaces immediately under a given namespace.\n\nThis endpoint\nlists up to 1000 namespaces. If more namespaces are present, a\n`continuationToken` will be returned, which can be given in the next\nrequest. For the initial request, the payload should be an empty JSON\nobject.",
+          "method": "get",
+          "name": "listNamespaces",
+          "output": "http://schemas.taskcluster.net/index/v1/list-namespaces-response.json#",
+          "query": [
+            "continuationToken",
+            "limit"
+          ],
+          "route": "/namespaces/<namespace>",
+          "stability": "stable",
+          "title": "List Namespaces",
+          "type": "function"
+        },
+        {
+          "args": [
+            "namespace"
+          ],
+          "description": "List the namespaces immediately under a given namespace.\n\nThis endpoint\nlists up to 1000 namespaces. If more namespaces are present, a\n`continuationToken` will be returned, which can be given in the next\nrequest. For the initial request, the payload should be an empty JSON\nobject.",
           "input": "http://schemas.taskcluster.net/index/v1/list-namespaces-request.json#",
           "method": "post",
-          "name": "listNamespaces",
+          "name": "listNamespacesPost",
           "output": "http://schemas.taskcluster.net/index/v1/list-namespaces-response.json#",
           "query": [
           ],
           "route": "/namespaces/<namespace>",
-          "stability": "stable",
+          "stability": "deprecated",
           "title": "List Namespaces",
           "type": "function"
         },
@@ -1548,11 +1965,7 @@ module.exports = {
           "query": [
           ],
           "route": "/task/<namespace>",
-          "scopes": [
-            [
-              "index:insert-task:<namespace>"
-            ]
-          ],
+          "scopes": "index:insert-task:<namespace>",
           "stability": "stable",
           "title": "Insert Task into Index",
           "type": "function"
@@ -1568,11 +1981,10 @@ module.exports = {
           "query": [
           ],
           "route": "/task/<indexPath>/artifacts/<name>",
-          "scopes": [
-            [
-              "queue:get-artifact:<name>"
-            ]
-          ],
+          "scopes": {
+            "if": "private",
+            "then": "queue:get-artifact:<name>"
+          },
           "stability": "stable",
           "title": "Get Artifact From Indexed Task",
           "type": "function"
@@ -1600,7 +2012,7 @@ module.exports = {
     "reference": {
       "$schema": "http://schemas.taskcluster.net/base/v1/api-reference.json#",
       "baseUrl": "https://login.taskcluster.net/v1",
-      "description": "The Login service serves as the interface between external authentication\nsystems and TaskCluster credentials.",
+      "description": "The Login service serves as the interface between external authentication\nsystems and Taskcluster credentials.",
       "entries": [
         {
           "args": [
@@ -1614,7 +2026,7 @@ module.exports = {
           ],
           "route": "/oidc-credentials/<provider>",
           "stability": "experimental",
-          "title": "Get TaskCluster credentials given a suitable `access_token`",
+          "title": "Get Taskcluster credentials given a suitable `access_token`",
           "type": "function"
         },
         {
@@ -1652,11 +2064,7 @@ module.exports = {
           "query": [
           ],
           "route": "/email",
-          "scopes": [
-            [
-              "notify:email:<address>"
-            ]
-          ],
+          "scopes": "notify:email:<address>",
           "stability": "experimental",
           "title": "Send an Email",
           "type": "function"
@@ -1671,11 +2079,7 @@ module.exports = {
           "query": [
           ],
           "route": "/pulse",
-          "scopes": [
-            [
-              "notify:pulse:<routingKey>"
-            ]
-          ],
+          "scopes": "notify:pulse:<routingKey>",
           "stability": "experimental",
           "title": "Publish a Pulse Message",
           "type": "function"
@@ -1690,12 +2094,11 @@ module.exports = {
           "query": [
           ],
           "route": "/irc",
-          "scopes": [
-            [
-              "notify:irc-channel:<channel>",
-              "notify:irc-user:<user>"
-            ]
-          ],
+          "scopes": {
+            "else": "notify:irc-user:<user>",
+            "if": "channelRequest",
+            "then": "notify:irc-channel:<channel>"
+          },
           "stability": "experimental",
           "title": "Post IRC Message",
           "type": "function"
@@ -1719,97 +2122,6 @@ module.exports = {
     },
     "referenceUrl": "http://references.taskcluster.net/notify/v1/api.json"
   },
-  "Pulse": {
-    "reference": {
-      "$schema": "http://schemas.taskcluster.net/base/v1/api-reference.json#",
-      "baseUrl": "https://pulse.taskcluster.net/v1",
-      "description": "The taskcluster-pulse service, typically available at `pulse.taskcluster.net`\nmanages pulse credentials for taskcluster users.\n\nA service to manage Pulse credentials for anything using\nTaskcluster credentials. This allows for self-service pulse\naccess and greater control within the Taskcluster project.",
-      "entries": [
-        {
-          "args": [
-          ],
-          "description": "Get an overview of the Rabbit cluster.",
-          "method": "get",
-          "name": "overview",
-          "output": "http://schemas.taskcluster.net/pulse/v1/rabbit-overview.json",
-          "query": [
-          ],
-          "route": "/overview",
-          "stability": "experimental",
-          "title": "Rabbit Overview",
-          "type": "function"
-        },
-        {
-          "args": [
-          ],
-          "description": "List the namespaces managed by this service.\n\nThis will list up to 1000 namespaces. If more namespaces are present a\n`continuationToken` will be returned, which can be given in the next\nrequest. For the initial request, do not provide continuation.",
-          "method": "get",
-          "name": "listNamespaces",
-          "output": "http://schemas.taskcluster.net/pulse/v1/list-namespaces-response.json",
-          "query": [
-            "limit",
-            "continuation"
-          ],
-          "route": "/namespaces",
-          "stability": "experimental",
-          "title": "List Namespaces",
-          "type": "function"
-        },
-        {
-          "args": [
-            "namespace"
-          ],
-          "description": "Get public information about a single namespace. This is the same information\nas returned by `listNamespaces`.",
-          "method": "get",
-          "name": "namespace",
-          "output": "http://schemas.taskcluster.net/pulse/v1/namespace.json",
-          "query": [
-          ],
-          "route": "/namespace/<namespace>",
-          "stability": "experimental",
-          "title": "Get a namespace",
-          "type": "function"
-        },
-        {
-          "args": [
-            "namespace"
-          ],
-          "description": "Claim a namespace, returning a username and password with access to that\nnamespace good for a short time.  Clients should call this endpoint again\nat the re-claim time given in the response, as the password will be rotated\nsoon after that time.  The namespace will expire, and any associated queues\nand exchanges will be deleted, at the given expiration time.\n\nThe `expires` and `contact` properties can be updated at any time in a reclaim\noperation.",
-          "input": "http://schemas.taskcluster.net/pulse/v1/namespace-request.json",
-          "method": "post",
-          "name": "claimNamespace",
-          "output": "http://schemas.taskcluster.net/pulse/v1/namespace-response.json",
-          "query": [
-          ],
-          "route": "/namespace/<namespace>",
-          "scopes": [
-            [
-              "pulse:namespace:<namespace>"
-            ]
-          ],
-          "stability": "experimental",
-          "title": "Claim a namespace",
-          "type": "function"
-        },
-        {
-          "args": [
-          ],
-          "description": "Respond without doing anything.\nThis endpoint is used to check that the service is up.",
-          "method": "get",
-          "name": "ping",
-          "query": [
-          ],
-          "route": "/ping",
-          "stability": "stable",
-          "title": "Ping Server",
-          "type": "function"
-        }
-      ],
-      "title": "Pulse Management Service",
-      "version": 0
-    },
-    "referenceUrl": "http://references.taskcluster.net/pulse/v1/api.json"
-  },
   "PurgeCache": {
     "reference": {
       "$schema": "http://schemas.taskcluster.net/base/v1/api-reference.json#",
@@ -1828,12 +2140,8 @@ module.exports = {
           "query": [
           ],
           "route": "/purge-cache/<provisionerId>/<workerType>",
-          "scopes": [
-            [
-              "purge-cache:<provisionerId>/<workerType>:<cacheName>"
-            ]
-          ],
-          "stability": "experimental",
+          "scopes": "purge-cache:<provisionerId>/<workerType>:<cacheName>",
+          "stability": "stable",
           "title": "Purge Worker Cache",
           "type": "function"
         },
@@ -1849,7 +2157,7 @@ module.exports = {
             "limit"
           ],
           "route": "/purge-cache/list",
-          "stability": "experimental",
+          "stability": "stable",
           "title": "All Open Purge Requests",
           "type": "function"
         },
@@ -1866,7 +2174,7 @@ module.exports = {
             "since"
           ],
           "route": "/purge-cache/<provisionerId>/<workerType>",
-          "stability": "experimental",
+          "stability": "stable",
           "title": "Open Purge Requests for a provisionerId/workerType pair",
           "type": "function"
         },
@@ -2012,12 +2320,53 @@ module.exports = {
           "query": [
           ],
           "route": "/task/<taskId>",
-          "scopes": [
-            [
-              "queue:create-task:<priority>:<provisionerId>/<workerType>",
-              "queue:scheduler-id:<schedulerId>"
+          "scopes": {
+            "AllOf": [
+              {
+                "each": "<scope>",
+                "for": "scope",
+                "in": "scopes"
+              },
+              {
+                "each": "queue:route:<route>",
+                "for": "route",
+                "in": "routes"
+              },
+              {
+                "AnyOf": [
+                  {
+                    "AllOf": [
+                      "queue:scheduler-id:<schedulerId>",
+                      {
+                        "AnyOf": [
+                          {
+                            "each": "queue:create-task:<priority>:<provisionerId>/<workerType>",
+                            "for": "priority",
+                            "in": "priorities"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "if": "legacyScopes",
+                    "then": {
+                      "AnyOf": [
+                        "queue:create-task:<provisionerId>/<workerType>",
+                        {
+                          "AllOf": [
+                            "queue:define-task:<provisionerId>/<workerType>",
+                            "queue:task-group-id:<schedulerId>/<taskGroupId>",
+                            "queue:schedule-task:<schedulerId>/<taskGroupId>/<taskId>"
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             ]
-          ],
+          },
           "stability": "stable",
           "title": "Create New Task",
           "type": "function"
@@ -2034,12 +2383,53 @@ module.exports = {
           "query": [
           ],
           "route": "/task/<taskId>/define",
-          "scopes": [
-            [
-              "queue:create-task:<priority>:<provisionerId>/<workerType>",
-              "queue:scheduler-id:<schedulerId>"
+          "scopes": {
+            "AllOf": [
+              {
+                "each": "<scope>",
+                "for": "scope",
+                "in": "scopes"
+              },
+              {
+                "each": "queue:route:<route>",
+                "for": "route",
+                "in": "routes"
+              },
+              {
+                "AnyOf": [
+                  {
+                    "AllOf": [
+                      "queue:scheduler-id:<schedulerId>",
+                      {
+                        "AnyOf": [
+                          {
+                            "each": "queue:create-task:<priority>:<provisionerId>/<workerType>",
+                            "for": "priority",
+                            "in": "priorities"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "if": "legacyScopes",
+                    "then": {
+                      "AnyOf": [
+                        "queue:define-task:<provisionerId>/<workerType>",
+                        "queue:create-task:<provisionerId>/<workerType>",
+                        {
+                          "AllOf": [
+                            "queue:define-task:<provisionerId>/<workerType>",
+                            "queue:task-group-id:<schedulerId>/<taskGroupId>"
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             ]
-          ],
+          },
           "stability": "deprecated",
           "title": "Define Task",
           "type": "function"
@@ -2055,15 +2445,17 @@ module.exports = {
           "query": [
           ],
           "route": "/task/<taskId>/schedule",
-          "scopes": [
-            [
-              "queue:schedule-task",
-              "assume:scheduler-id:<schedulerId>/<taskGroupId>"
-            ],
-            [
-              "queue:schedule-task:<schedulerId>/<taskGroupId>/<taskId>"
+          "scopes": {
+            "AnyOf": [
+              "queue:schedule-task:<schedulerId>/<taskGroupId>/<taskId>",
+              {
+                "AllOf": [
+                  "queue:schedule-task",
+                  "assume:scheduler-id:<schedulerId>/<taskGroupId>"
+                ]
+              }
             ]
-          ],
+          },
           "stability": "stable",
           "title": "Schedule Defined Task",
           "type": "function"
@@ -2079,15 +2471,17 @@ module.exports = {
           "query": [
           ],
           "route": "/task/<taskId>/rerun",
-          "scopes": [
-            [
-              "queue:rerun-task",
-              "assume:scheduler-id:<schedulerId>/<taskGroupId>"
-            ],
-            [
-              "queue:rerun-task:<schedulerId>/<taskGroupId>/<taskId>"
+          "scopes": {
+            "AnyOf": [
+              "queue:rerun-task:<schedulerId>/<taskGroupId>/<taskId>",
+              {
+                "AllOf": [
+                  "queue:rerun-task",
+                  "assume:scheduler-id:<schedulerId>/<taskGroupId>"
+                ]
+              }
             ]
-          ],
+          },
           "stability": "deprecated",
           "title": "Rerun a Resolved Task",
           "type": "function"
@@ -2103,15 +2497,17 @@ module.exports = {
           "query": [
           ],
           "route": "/task/<taskId>/cancel",
-          "scopes": [
-            [
-              "queue:cancel-task",
-              "assume:scheduler-id:<schedulerId>/<taskGroupId>"
-            ],
-            [
-              "queue:cancel-task:<schedulerId>/<taskGroupId>/<taskId>"
+          "scopes": {
+            "AnyOf": [
+              "queue:cancel-task:<schedulerId>/<taskGroupId>/<taskId>",
+              {
+                "AllOf": [
+                  "queue:cancel-task",
+                  "assume:scheduler-id:<schedulerId>/<taskGroupId>"
+                ]
+              }
             ]
-          ],
+          },
           "stability": "stable",
           "title": "Cancel Task",
           "type": "function"
@@ -2128,15 +2524,17 @@ module.exports = {
           "query": [
           ],
           "route": "/poll-task-url/<provisionerId>/<workerType>",
-          "scopes": [
-            [
-              "queue:poll-task-urls",
-              "assume:worker-type:<provisionerId>/<workerType>"
-            ],
-            [
-              "queue:poll-task-urls:<provisionerId>/<workerType>"
+          "scopes": {
+            "AnyOf": [
+              "queue:poll-task-urls:<provisionerId>/<workerType>",
+              {
+                "AllOf": [
+                  "queue:poll-task-urls",
+                  "assume:worker-type:<provisionerId>/<workerType>"
+                ]
+              }
             ]
-          ],
+          },
           "stability": "stable",
           "title": "Get Urls to Poll Pending Tasks",
           "type": "function"
@@ -2154,12 +2552,12 @@ module.exports = {
           "query": [
           ],
           "route": "/claim-work/<provisionerId>/<workerType>",
-          "scopes": [
-            [
+          "scopes": {
+            "AllOf": [
               "queue:claim-work:<provisionerId>/<workerType>",
               "queue:worker-id:<workerGroup>/<workerId>"
             ]
-          ],
+          },
           "stability": "stable",
           "title": "Claim Work",
           "type": "function"
@@ -2177,17 +2575,23 @@ module.exports = {
           "query": [
           ],
           "route": "/task/<taskId>/runs/<runId>/claim",
-          "scopes": [
-            [
-              "queue:claim-task",
-              "assume:worker-type:<provisionerId>/<workerType>",
-              "assume:worker-id:<workerGroup>/<workerId>"
-            ],
-            [
-              "queue:claim-task:<provisionerId>/<workerType>",
-              "queue:worker-id:<workerGroup>/<workerId>"
+          "scopes": {
+            "AnyOf": [
+              {
+                "AllOf": [
+                  "queue:claim-task:<provisionerId>/<workerType>",
+                  "queue:worker-id:<workerGroup>/<workerId>"
+                ]
+              },
+              {
+                "AllOf": [
+                  "queue:claim-task",
+                  "assume:worker-type:<provisionerId>/<workerType>",
+                  "assume:worker-id:<workerGroup>/<workerId>"
+                ]
+              }
             ]
-          ],
+          },
           "stability": "stable",
           "title": "Claim Task",
           "type": "function"
@@ -2204,15 +2608,17 @@ module.exports = {
           "query": [
           ],
           "route": "/task/<taskId>/runs/<runId>/reclaim",
-          "scopes": [
-            [
-              "queue:claim-task",
-              "assume:worker-id:<workerGroup>/<workerId>"
-            ],
-            [
-              "queue:reclaim-task:<taskId>/<runId>"
+          "scopes": {
+            "AnyOf": [
+              "queue:reclaim-task:<taskId>/<runId>",
+              {
+                "AllOf": [
+                  "queue:claim-task",
+                  "assume:worker-id:<workerGroup>/<workerId>"
+                ]
+              }
             ]
-          ],
+          },
           "stability": "stable",
           "title": "Reclaim task",
           "type": "function"
@@ -2229,15 +2635,17 @@ module.exports = {
           "query": [
           ],
           "route": "/task/<taskId>/runs/<runId>/completed",
-          "scopes": [
-            [
-              "queue:resolve-task",
-              "assume:worker-id:<workerGroup>/<workerId>"
-            ],
-            [
-              "queue:resolve-task:<taskId>/<runId>"
+          "scopes": {
+            "AnyOf": [
+              "queue:resolve-task:<taskId>/<runId>",
+              {
+                "AllOf": [
+                  "queue:resolve-task",
+                  "assume:worker-id:<workerGroup>/<workerId>"
+                ]
+              }
             ]
-          ],
+          },
           "stability": "stable",
           "title": "Report Run Completed",
           "type": "function"
@@ -2254,15 +2662,17 @@ module.exports = {
           "query": [
           ],
           "route": "/task/<taskId>/runs/<runId>/failed",
-          "scopes": [
-            [
-              "queue:resolve-task",
-              "assume:worker-id:<workerGroup>/<workerId>"
-            ],
-            [
-              "queue:resolve-task:<taskId>/<runId>"
+          "scopes": {
+            "AnyOf": [
+              "queue:resolve-task:<taskId>/<runId>",
+              {
+                "AllOf": [
+                  "queue:resolve-task",
+                  "assume:worker-id:<workerGroup>/<workerId>"
+                ]
+              }
             ]
-          ],
+          },
           "stability": "stable",
           "title": "Report Run Failed",
           "type": "function"
@@ -2280,15 +2690,17 @@ module.exports = {
           "query": [
           ],
           "route": "/task/<taskId>/runs/<runId>/exception",
-          "scopes": [
-            [
-              "queue:resolve-task",
-              "assume:worker-id:<workerGroup>/<workerId>"
-            ],
-            [
-              "queue:resolve-task:<taskId>/<runId>"
+          "scopes": {
+            "AnyOf": [
+              "queue:resolve-task:<taskId>/<runId>",
+              {
+                "AllOf": [
+                  "queue:resolve-task",
+                  "assume:worker-id:<workerGroup>/<workerId>"
+                ]
+              }
             ]
-          ],
+          },
           "stability": "stable",
           "title": "Report Task Exception",
           "type": "function"
@@ -2307,15 +2719,17 @@ module.exports = {
           "query": [
           ],
           "route": "/task/<taskId>/runs/<runId>/artifacts/<name>",
-          "scopes": [
-            [
-              "queue:create-artifact:<name>",
-              "assume:worker-id:<workerGroup>/<workerId>"
-            ],
-            [
-              "queue:create-artifact:<taskId>/<runId>"
+          "scopes": {
+            "AnyOf": [
+              "queue:create-artifact:<taskId>/<runId>",
+              {
+                "AllOf": [
+                  "queue:create-artifact:<name>",
+                  "assume:worker-id:<workerGroup>/<workerId>"
+                ]
+              }
             ]
-          ],
+          },
           "stability": "stable",
           "title": "Create Artifact",
           "type": "function"
@@ -2333,15 +2747,17 @@ module.exports = {
           "query": [
           ],
           "route": "/task/<taskId>/runs/<runId>/artifacts/<name>",
-          "scopes": [
-            [
-              "queue:create-artifact:<name>",
-              "assume:worker-id:<workerGroup>/<workerId>"
-            ],
-            [
-              "queue:create-artifact:<taskId>/<runId>"
+          "scopes": {
+            "AnyOf": [
+              "queue:create-artifact:<taskId>/<runId>",
+              {
+                "AllOf": [
+                  "queue:create-artifact:<name>",
+                  "assume:worker-id:<workerGroup>/<workerId>"
+                ]
+              }
             ]
-          ],
+          },
           "stability": "experimental",
           "title": "Complete Artifact",
           "type": "function"
@@ -2358,11 +2774,14 @@ module.exports = {
           "query": [
           ],
           "route": "/task/<taskId>/runs/<runId>/artifacts/<name>",
-          "scopes": [
-            [
-              "queue:get-artifact:<name>"
-            ]
-          ],
+          "scopes": {
+            "if": "private",
+            "then": {
+              "AllOf": [
+                "queue:get-artifact:<name>"
+              ]
+            }
+          },
           "stability": "stable",
           "title": "Get Artifact from Run",
           "type": "function"
@@ -2378,11 +2797,14 @@ module.exports = {
           "query": [
           ],
           "route": "/task/<taskId>/artifacts/<name>",
-          "scopes": [
-            [
-              "queue:get-artifact:<name>"
-            ]
-          ],
+          "scopes": {
+            "if": "private",
+            "then": {
+              "AllOf": [
+                "queue:get-artifact:<name>"
+              ]
+            }
+          },
           "stability": "stable",
           "title": "Get Artifact from Latest Run",
           "type": "function"
@@ -2465,11 +2887,15 @@ module.exports = {
           "query": [
           ],
           "route": "/provisioners/<provisionerId>",
-          "scopes": [
-            [
-              "queue:declare-provisioner:<provisionerId>#<property>"
+          "scopes": {
+            "AllOf": [
+              {
+                "each": "queue:declare-provisioner:<provisionerId>#<property>",
+                "for": "property",
+                "in": "properties"
+              }
             ]
-          ],
+          },
           "stability": "experimental",
           "title": "Update a provisioner",
           "type": "function"
@@ -2536,11 +2962,15 @@ module.exports = {
           "query": [
           ],
           "route": "/provisioners/<provisionerId>/worker-types/<workerType>",
-          "scopes": [
-            [
-              "queue:declare-worker-type:<provisionerId>/<workerType>#<property>"
+          "scopes": {
+            "AllOf": [
+              {
+                "each": "queue:declare-worker-type:<provisionerId>/<workerType>#<property>",
+                "for": "property",
+                "in": "properties"
+              }
             ]
-          ],
+          },
           "stability": "experimental",
           "title": "Update a worker-type",
           "type": "function"
@@ -2597,11 +3027,11 @@ module.exports = {
           "query": [
           ],
           "route": "/provisioners/<provisionerId>/worker-types/<workerType>/workers/<workerGroup>/<workerId>",
-          "scopes": [
-            [
+          "scopes": {
+            "AllOf": [
               "queue:quarantine-worker:<provisionerId>/<workerType>/<workerGroup>/<workerId>"
             ]
-          ],
+          },
           "stability": "experimental",
           "title": "Quarantine a worker",
           "type": "function"
@@ -2621,11 +3051,15 @@ module.exports = {
           "query": [
           ],
           "route": "/provisioners/<provisionerId>/worker-types/<workerType>/<workerGroup>/<workerId>",
-          "scopes": [
-            [
-              "queue:declare-worker:<provisionerId>/<workerType>/<workerGroup>/<workerId>#<property>"
+          "scopes": {
+            "AllOf": [
+              {
+                "each": "queue:declare-worker:<provisionerId>/<workerType>/<workerGroup>/<workerId>#<property>",
+                "for": "property",
+                "in": "properties"
+              }
             ]
-          ],
+          },
           "stability": "experimental",
           "title": "Declare a worker",
           "type": "function"
@@ -3210,11 +3644,7 @@ module.exports = {
           "query": [
           ],
           "route": "/secret/<name>",
-          "scopes": [
-            [
-              "secrets:set:<name>"
-            ]
-          ],
+          "scopes": "secrets:set:<name>",
           "stability": "stable",
           "title": "Set Secret",
           "type": "function"
@@ -3229,11 +3659,7 @@ module.exports = {
           "query": [
           ],
           "route": "/secret/<name>",
-          "scopes": [
-            [
-              "secrets:set:<name>"
-            ]
-          ],
+          "scopes": "secrets:set:<name>",
           "stability": "stable",
           "title": "Delete Secret",
           "type": "function"
@@ -3249,11 +3675,7 @@ module.exports = {
           "query": [
           ],
           "route": "/secret/<name>",
-          "scopes": [
-            [
-              "secrets:get:<name>"
-            ]
-          ],
+          "scopes": "secrets:get:<name>",
           "stability": "stable",
           "title": "Read Secret",
           "type": "function"
