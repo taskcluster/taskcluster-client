@@ -137,7 +137,7 @@ var makeRequest = function(client, method, url, payload, query) {
  *
  * `baseUrl` and `exchangePrefix` defaults to values from reference.
  *
- * `rootUrl` will override `baseUrl` if provided.
+ * `rootUrl` and `baseUrl` are mutually exclusive.
  */
 exports.createClient = function(reference, name) {
   if (!name || typeof name !== 'string') {
@@ -146,6 +146,9 @@ exports.createClient = function(reference, name) {
 
   // Client class constructor
   var Client = function(options) {
+    if (options && options.baseUrl && options.rootUrl) {
+      throw new Error('baseUrl and rootUrl are mutually exlcusive. Prefer rootUrl.');
+    }
     this._options = _.defaults({}, options || {}, {
       baseUrl:          reference.baseUrl        || '',
       exchangePrefix:   reference.exchangePrefix || '',
