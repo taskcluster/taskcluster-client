@@ -179,7 +179,7 @@ that either resolves without giving a value or rejects with an error.
 
 In testing, it is useful to be able to "fake out" client methods so that they
 do not try to communicate with an actual, external service. The normal client
-argument checking still takes place, and a function of your design can be called
+argument checking still takes place, and a function of your design will be called
 instead of calling the external service.
 
 This is set up when constructing the client. Typically, this occurs in a
@@ -202,13 +202,17 @@ test('test the thing', async function() {
   // Do something with the secrets object
   let s = await secrets.get('thing-to-read');
   assume(s).is.a('string');
-  await secrets.set('thing-to-write', {myToken: "example secret"});
 
   // Make assertions over recorded calls
-  assume(secrets.fakeCalls.set).deep.contains({
-    name: 'thing-to-write',
-    payload: {myToken: "example secret"},
-  })
+  assume(secrets.fakeCalls.get).deep.contains({
+    name: 'thing-to-read',
+  });
+
+  try {
+    await secrets.get('...', {}); // throws and error because we didn't fake it
+  } catch (err) {
+    // pass
+  }
 });
 ```
 

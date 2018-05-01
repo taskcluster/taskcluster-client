@@ -61,14 +61,13 @@ var _defaultOptions = {
   // The prefix of any api calls. e.g. https://taskcluster.net/api/
   rootUrl: process.env.TASKCLUSTER_ROOT,
 
-  // Fake methods, if truthy this will produce a fake client object.
+  // Fake methods, if given this will produce a fake client object.
   // Methods called won't make expected HTTP requests, but instead:
   //   1. Add arguments to `Client.fakeCalls.<method>.push({...params, payload, query})`
-  //   2. Invoke and return `fake.<method>(...args)`, if `fake.<method>`
-  //      is defined, otherwise null is returned.
+  //   2. Invoke and return `fake.<method>(...args)`
   //
   // This allows `Client.fakeCalls.<method>` to be used for assertions, and
-  // `fake.<method>` can be used inject fake implementations when necessary.
+  // `fake.<method>` can be used inject fake implementations.
   fake: null,
 };
 
@@ -436,11 +435,13 @@ exports.createClient = function(reference, name) {
         }
         entry.args.forEach((k, i) => record[k] = args[i]);
         this.fakeCalls[entry.name].push(record);
-        // Call fake[<method>] if given
-        if (this._options.fake[entry.name]) {
-          return this._options.fake[entry.name].apply(null, args);
+        // Call fake[<method>]
+        if (!this._options.fake[entry.name]) {
+          return Promise.reject(new Error(
+            `Faked taskcluster-client object does not have an implementation of ${entry.name}`,
+          ));
         }
-        return null;
+        return this._options.fake[entry.name].apply(null, args);
       }
 
       // Start the retry request loop
