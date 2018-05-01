@@ -642,7 +642,25 @@ suite('client requests/responses', function() {
     });
   });
 
-  test('fakedMethods', async function() {
+  test('fake client object', async function() {
+    const Fake = taskcluster.createClient(referenceNameStyle);
+    const client = new Fake({
+      rootUrl: 'https://whatever.net',
+      credentials: {
+        clientId: 'nobody',
+        accessToken: 'nothing',
+      },
+      fake: true,
+    });
+
+    await client.postParam('test', {hello: 'world'});
+    assert.deepEqual(client.fakeCalls.postParam, [{
+      param: 'test',
+      payload: {hello: 'world'},
+    }]);
+  });
+
+  test('inject custom fake method', async function() {
     let client;
     let gotArgs;
 
@@ -653,7 +671,7 @@ suite('client requests/responses', function() {
         clientId: 'nobody',
         accessToken: 'nothing',
       },
-      fakedMethods: {
+      fake: {
         postParam: async function() {
           gotArgs = Array.prototype.slice.call(arguments);
           return {result: 42};

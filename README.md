@@ -179,32 +179,36 @@ that either resolves without giving a value or rejects with an error.
 
 In testing, it is useful to be able to "fake out" client methods so that they
 do not try to communicate with an actual, external service. The normal client
-argument checking still takes place, and a function of your design is called
+argument checking still takes place, and a function of your design can be called
 instead of calling the external service.
 
 This is set up when constructing the client. Typically, this occurs in a
-`taskcluster-lib-loader` entry. Note that any calls to non-faked methods will
-proceed as usual, contacting the service.
+`taskcluster-lib-loader` entry.
 
 ```javascript
-let setSecrets;
-const fakeSetSecret = async (name, payload) => {
-  secrets[name] = payload;
-};
-
 setup(function () {
-  setSecrets = {};
   // inject the dependency with a stickyLoader from taskcluster-lib-testing
   helper.load.inject('secrets', new taskcluster.Secrets({
-    fakedMethods: {
-      set: fakeSetSecret,
+    fake: {
+      get: (name) => 'my-hardcoded-secret',
     },
   });
 });
 
 test('test the thing', async function() {
-  await someFunction();
-  assume(setSecrets).to.deep.equal({..});
+  // Get secrets from injection above
+  let secrets = await helper.load('secrets');
+
+  // Do something with the secrets object
+  let s = await secrets.get('thing-to-read');
+  assume(s).is.a('string');
+  await secrets.set('thing-to-write', {myToken: "example secret"});
+
+  // Make assertions over recorded calls
+  assume(secrets.fakeCalls.set).deep.contains({
+    name: 'thing-to-write',
+    payload: {myToken: "example secret"},
+  })
 });
 ```
 

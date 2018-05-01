@@ -61,9 +61,15 @@ var _defaultOptions = {
   // The prefix of any api calls. e.g. https://taskcluster.net/api/
   rootUrl: process.env.TASKCLUSTER_ROOT,
 
-  // "Faked" methods; these are functions called *instead* of making the expected
-  // HTTP request; the result is returned to the caller.
-  fakedMethods: {},
+  // Fake methods, if truthy this will produce a fake client object.
+  // Methods called won't make expected HTTP requests, but instead:
+  //   1. Add arguments to `Client.fakeCalls.<method>.push({...params, payload, query})`
+  //   2. Invoke and return `fake.<method>(...args)`, if `fake.<method>`
+  //      is defined, otherwise null is returned.
+  //
+  // This allows `Client.fakeCalls.<method>` to be used for assertions, and
+  // `fake.<method>` can be used inject fake implementations when necessary.
+  fake: null,
 };
 
 /** Make a request for a Client instance */
@@ -226,6 +232,18 @@ exports.createClient = function(reference, name) {
       // ext has any keys we better base64 encode it, and set ext on extra
       if (_.keys(ext).length > 0) {
         this._extData = new Buffer(JSON.stringify(ext)).toString('base64');
+      }
+    }
+
+    // If fake, we create an array this.fakeCalls[method] = [] for each method
+    if (this._options.fake) {
+      debug('Creating taskcluster-client object in "fake" mode');
+      this.fakeCalls = {};
+      reference.entries.filter(e => e.type === 'function').forEach(e => this.fakeCalls[e.name] = []);
+      // Warn if creating fakes in production, this just a warning to help people
+      // we can't know that everybody will set NODE_ENV to 'production'
+      if (process.env.NODE_ENV === 'production') {
+        console.log('Warning: taskcluster-client object created in "fake" mode');
       }
     }
   };
@@ -407,8 +425,23 @@ exports.createClient = function(reference, name) {
       };
 
       // call out to the fake version, if set
-      if (entry.name in this._options.fakedMethods) {
-        return this._options.fakedMethods[entry.name].apply(null, args);
+      if (this._options.fake) {
+        debug('Faking call to %s(%s)', entry.name, args.map(a => JSON.stringify(a, null, 2)).join(', '));
+        // Add a call record to fakeCalls[<method>]
+        var record = {};
+        if (payload !== undefined) {
+          record.payload = payload;
+        }
+        if (query !== null) {
+          record.query = query;
+        }
+        entry.args.forEach((k, i) => record[k] = args[i]);
+        this.fakeCalls[entry.name].push(record);
+        // Call fake[<method>] if given
+        if (this._options.fake[entry.name]) {
+          return this._options.fake[entry.name].apply(null, args);
+        }
+        return null;
       }
 
       // Start the retry request loop
