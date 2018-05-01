@@ -60,6 +60,10 @@ var _defaultOptions = {
 
   // The prefix of any api calls. e.g. https://taskcluster.net/api/
   rootUrl: process.env.TASKCLUSTER_ROOT,
+
+  // "Faked" methods; these are functions called *instead* of making the expected
+  // HTTP request; the result is returned to the caller.
+  fakedMethods: {},
 };
 
 /** Make a request for a Client instance */
@@ -401,6 +405,11 @@ exports.createClient = function(reference, name) {
           });
         }
       };
+
+      // call out to the fake version, if set
+      if (entry.name in this._options.fakedMethods) {
+        return this._options.fakedMethods[entry.name].apply(null, args);
+      }
 
       // Start the retry request loop
       return retryRequest();
