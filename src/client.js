@@ -240,10 +240,9 @@ exports.createClient = function(reference, name) {
       debug('Creating taskcluster-client object in "fake" mode');
       this.fakeCalls = {};
       reference.entries.filter(e => e.type === 'function').forEach(e => this.fakeCalls[e.name] = []);
-      // Warn if creating fakes in production, this just a warning to help people
-      // we can't know that everybody will set NODE_ENV to 'production'
+      // Throw an error if creating fakes in production
       if (process.env.NODE_ENV === 'production') {
-        console.log('Warning: taskcluster-client object created in "fake" mode');
+        new Error('taskcluster-client object created in "fake" mode, when NODE_ENV == "production"');
       }
     }
   };
