@@ -240,7 +240,7 @@ suite('client requests/responses', function() {
             accessToken: 'nothing',
           },
         });
-        delete process.env.TASKCLUSTER_ROOT;
+        delete process.env.TASKCLUSTER_ROOT_URL;
         return fake;
       })(),
     },

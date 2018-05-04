@@ -670,13 +670,13 @@ var auth = new taskcluster.Auth({
 
 This will be the supported way moving forward of pointing taskcluster at
 different instances of taskcluster. This can also be set by setting a
-`TASKCLUSTER_ROOT` env var before importing taskcluster-client. You can also
+`TASKCLUSTER_ROOT_URL` env var before importing taskcluster-client. You can also
 use global config options as below:
 
 ```js
 // Configure default options
 taskcluster.config({
-  rootUrl: "https://somesite.com",
+  rootUrl: "https://somesite.com/api",
 });
 
 // No rootUrl needed here

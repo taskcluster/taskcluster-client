@@ -59,7 +59,7 @@ var _defaultOptions = {
   maxDelay:       30 * 1000,
 
   // The prefix of any api calls. e.g. https://taskcluster.net/api/
-  rootUrl: process.env.TASKCLUSTER_ROOT,
+  rootUrl: process.env.TASKCLUSTER_ROOT_URL,
 
   // Fake methods, if given this will produce a fake client object.
   // Methods called won't make expected HTTP requests, but instead:
@@ -156,7 +156,7 @@ exports.createClient = function(reference, name) {
   // Client class constructor
   var Client = function(options) {
     if (options && options.baseUrl && options.rootUrl) {
-      throw new Error('baseUrl and rootUrl are mutually exlcusive. Prefer rootUrl.');
+      throw new Error('baseUrl and rootUrl are mutually exclusive. Prefer rootUrl.');
     }
     this._options = _.defaults({}, options || {}, {
       baseUrl:          reference.baseUrl        || '',
