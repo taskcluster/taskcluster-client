@@ -664,7 +664,7 @@ the `rootUrl` when creating an instance of the client. As illustrated below:
 ```js
 var auth = new taskcluster.Auth({
   credentials:  {...},
-  rootUrl:      "http://whatever.com/api"
+  rootUrl:      "http://whatever.com"
 });
 ```
 
@@ -676,7 +676,7 @@ use global config options as below:
 ```js
 // Configure default options
 taskcluster.config({
-  rootUrl: "https://somesite.com/api",
+  rootUrl: "https://somesite.com",
 });
 
 // No rootUrl needed here
@@ -880,7 +880,7 @@ var dateObject2 = taskcluster.fromNow("1 year", dateObject1);
 Your users may find the options for TaskCluster credentials overwhelming.  You
 can help by interpreting the credentials for them.
 
-The `credentialInformation(credentials, options)` function returns a promise
+The `credentialInformation(rootUrl, credentials)` function returns a promise
 with information about the given credentials:
 
 ```js
