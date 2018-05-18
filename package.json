@@ -21,7 +21,7 @@
     "promise": "^8.0.1",
     "slugid": "^1.1.0",
     "superagent": "~3.8.1",
-    "taskcluster-lib-urls": "^1.0.0"
+    "taskcluster-lib-urls": "^1.1.0"
   },
   "engines": {
     "node": ">=8"

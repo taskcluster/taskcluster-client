@@ -2281,9 +2281,9 @@ taskcluster-lib-testing@^2.0.2:
     taskcluster-lib-validate "^3.0.1"
     uuid "^3.1.0"
 
-taskcluster-lib-urls@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/taskcluster-lib-urls/-/taskcluster-lib-urls-1.0.0.tgz#ebe6224384903d71b113bf26d63ff7cac48440b9"
+taskcluster-lib-urls@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/taskcluster-lib-urls/-/taskcluster-lib-urls-1.1.0.tgz#de6d78a0b61179e7f395ef2d3d7e5a994c1a6446"
 
 taskcluster-lib-validate@^3.0.1:
   version "3.0.1"
