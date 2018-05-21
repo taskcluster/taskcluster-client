@@ -53,7 +53,7 @@ var updateDocs = function() {
       "",
       "### Methods in `taskcluster." + name + "`",
       "```js",
-      "// Create " + name + " client instance with default baseUrl:",
+      "// Create " + name + " client instance:",
       "//  - " + api.reference.baseUrl,
       "var " + instanceName(name) + " = new taskcluster." + name + "(options);",
       "```"
