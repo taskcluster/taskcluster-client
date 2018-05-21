@@ -158,11 +158,14 @@ exports.createClient = function(reference, name) {
     if (options && options.exchangePrefix) {
       throw new Error('exchangePrefix has been deprecated!');
     }
-    let serviceName = reference.name;
+    let serviceName = reference.serviceName;
 
     // allow for older schemas; this should be deleted once it is no longer used.
     if (!serviceName) {
-      if (reference.baseUrl) {
+      if (reference.name) {
+        // it was called this for a while; https://bugzilla.mozilla.org/show_bug.cgi?id=1463207
+        serviceName = reference.name;
+      } else if (reference.baseUrl) {
         serviceName = reference.baseUrl.split('//')[1].split('.')[0];
       } else if (reference.exchangePrefix) {
         serviceName = reference.exchangePrefix.split('/')[1].replace('taskcluster-', '');
