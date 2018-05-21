@@ -462,7 +462,7 @@ var secrets = new taskcluster.Secrets(options);
 
 ### Exchanges in `taskcluster.AuthEvents`
 ```js
-// Create AuthEvents client instance with default exchangePrefix:
+// Create AuthEvents client instance:
 //  - exchange/taskcluster-auth/v1/
 var authEvents = new taskcluster.AuthEvents(options);
 ```
@@ -475,7 +475,7 @@ var authEvents = new taskcluster.AuthEvents(options);
 
 ### Exchanges in `taskcluster.AwsProvisionerEvents`
 ```js
-// Create AwsProvisionerEvents client instance with default exchangePrefix:
+// Create AwsProvisionerEvents client instance:
 //  - exchange/taskcluster-aws-provisioner/v1/
 var awsProvisionerEvents = new taskcluster.AwsProvisionerEvents(options);
 ```
@@ -485,7 +485,7 @@ var awsProvisionerEvents = new taskcluster.AwsProvisionerEvents(options);
 
 ### Exchanges in `taskcluster.GithubEvents`
 ```js
-// Create GithubEvents client instance with default exchangePrefix:
+// Create GithubEvents client instance:
 //  - exchange/taskcluster-github/v1/
 var githubEvents = new taskcluster.GithubEvents(options);
 ```
@@ -495,7 +495,7 @@ var githubEvents = new taskcluster.GithubEvents(options);
 
 ### Exchanges in `taskcluster.PurgeCacheEvents`
 ```js
-// Create PurgeCacheEvents client instance with default exchangePrefix:
+// Create PurgeCacheEvents client instance:
 //  - exchange/taskcluster-purge-cache/v1/
 var purgeCacheEvents = new taskcluster.PurgeCacheEvents(options);
 ```
@@ -503,7 +503,7 @@ var purgeCacheEvents = new taskcluster.PurgeCacheEvents(options);
 
 ### Exchanges in `taskcluster.QueueEvents`
 ```js
-// Create QueueEvents client instance with default exchangePrefix:
+// Create QueueEvents client instance:
 //  - exchange/taskcluster-queue/v1/
 var queueEvents = new taskcluster.QueueEvents(options);
 ```
@@ -518,7 +518,7 @@ var queueEvents = new taskcluster.QueueEvents(options);
 
 ### Exchanges in `taskcluster.TreeherderEvents`
 ```js
-// Create TreeherderEvents client instance with default exchangePrefix:
+// Create TreeherderEvents client instance:
 //  - exchange/taskcluster-treeherder/v1/
 var treeherderEvents = new taskcluster.TreeherderEvents(options);
 ```
@@ -741,22 +741,6 @@ queue.defineTask(taskId taskDefinition).then(function(result) {
 });
 ```
 
-
-## Configuration of Exchange Bindings
-When a taskcluster Client class is instantiated the option `exchangePrefix` may
-be given. This will replace the default `exchangePrefix`. This can be useful if
-deploying a staging area or similar. See example below:
-
-```js
-
-// Instantiate the QueueEvents Client class
-var queueEvents = new taskcluster.QueueEvents({
-  exchangePrefix:     'staging-queue/v1/'
-});
-
-// This listener will now bind to: staging-queue/v1/task-completed
-listener.bind(queueEvents.taskCompleted({taskId: '<myTaskId>'}));
-```
 
 ## Using the Listener
 TaskCluster relies on pulse for exchange of messages. You'll need an pulse

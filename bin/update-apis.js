@@ -90,7 +90,7 @@ var updateDocs = function() {
       "",
       "### Exchanges in `taskcluster." + name + "`",
       "```js",
-      "// Create " + name + " client instance with default exchangePrefix:",
+      "// Create " + name + " client instance:",
       "//  - " + api.reference.exchangePrefix,
       "var " + instanceName(name) + " = new taskcluster." + name + "(options);",
       "```"
