@@ -12,6 +12,7 @@ suite('client credential handling', function() {
   let client = function(options) {
     options = _.defaults({}, options || {}, {
       credentials: {},
+      rootUrl: 'https://taskcluster.net',
     });
     options.credentials = _.defaults({}, options.credentials, {
       clientId: 'tester',
@@ -356,7 +357,7 @@ suite('client credential handling', function() {
       // then this obviously will break.  The intent is to re-require the file
       // with the environment variables in place, since they are used at
       // load time
-      let clientPath = path.resolve(__dirname, '..', 'lib', 'client.js');
+      let clientPath = path.resolve(__dirname, '..', 'src', 'client.js');
       delete require.cache[clientPath];
       cleanClient = require(clientPath);
     });
@@ -372,7 +373,7 @@ suite('client credential handling', function() {
     });
 
     test('implicit credentials', async () => {
-      let client = new cleanClient.Auth();
+      let client = new cleanClient.Auth({rootUrl: 'https://taskcluster.net'});
       assert.deepEqual(
         await client.testAuthenticate({
           clientScopes: [],

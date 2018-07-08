@@ -14,6 +14,7 @@ var http        = require('http');
 var https       = require('https');
 var Promise     = require('promise');
 var querystring = require('querystring');
+var tcUrl       = require('taskcluster-lib-urls');
 
 /** Default options for our http/https global agents */
 var AGENT_OPTIONS = {
@@ -57,6 +58,18 @@ var _defaultOptions = {
   randomizationFactor: 0.25,
   // Maximum retry delay (defaults to 30 seconds)
   maxDelay:       30 * 1000,
+
+  // The prefix of any api calls. e.g. https://taskcluster.net/api/
+  rootUrl: process.env.TASKCLUSTER_ROOT_URL,
+
+  // Fake methods, if given this will produce a fake client object.
+  // Methods called won't make expected HTTP requests, but instead:
+  //   1. Add arguments to `Client.fakeCalls.<method>.push({...params, payload, query})`
+  //   2. Invoke and return `fake.<method>(...args)`
+  //
+  // This allows `Client.fakeCalls.<method>` to be used for assertions, and
+  // `fake.<method>` can be used inject fake implementations.
+  fake: null,
 };
 
 /** Make a request for a Client instance */
@@ -125,13 +138,12 @@ var makeRequest = function(client, method, url, payload, query) {
  *   // Limit the set of scopes requests with this client may make.
  *   // Note, that your clientId must have a superset of the these scopes.
  *   authorizedScopes:  ['scope1', 'scope2', ...]
- *   baseUrl:         'http://.../v1'   // baseUrl for API requests
- *   exchangePrefix:  'queue/v1/'       // exchangePrefix prefix
- *   retries:         5,                // Maximum number of retries
- *   monitor:         await Monitor()   // From taskcluster-lib-monitor
+ *   retries:         5,                             // Maximum number of retries
+ *   monitor:         await Monitor()                // From taskcluster-lib-monitor
+ *   rootUrl:         'https://taskcluster.net/api/' // prefix for all api calls
  * }
  *
- * `baseUrl` and `exchangePrefix` defaults to values from reference.
+ * `rootUrl` and `baseUrl` are mutually exclusive.
  */
 exports.createClient = function(reference, name) {
   if (!name || typeof name !== 'string') {
@@ -140,13 +152,34 @@ exports.createClient = function(reference, name) {
 
   // Client class constructor
   var Client = function(options) {
+    if (options && options.baseUrl) {
+      throw new Error('baseUrl has been deprecated!');
+    }
+    if (options && options.exchangePrefix) {
+      throw new Error('exchangePrefix has been deprecated!');
+    }
+    let serviceName = reference.serviceName;
+
+    // allow for older schemas; this should be deleted once it is no longer used.
+    if (!serviceName) {
+      if (reference.name) {
+        // it was called this for a while; https://bugzilla.mozilla.org/show_bug.cgi?id=1463207
+        serviceName = reference.name;
+      } else if (reference.baseUrl) {
+        serviceName = reference.baseUrl.split('//')[1].split('.')[0];
+      } else if (reference.exchangePrefix) {
+        serviceName = reference.exchangePrefix.split('/')[1].replace('taskcluster-', '');
+      }
+    }
     this._options = _.defaults({}, options || {}, {
-      baseUrl:          reference.baseUrl        || '',
-      exchangePrefix:   reference.exchangePrefix || '',
+      exchangePrefix:   reference.exchangePrefix,
+      serviceName,
+      serviceVersion: 'v1',
     }, _defaultOptions);
 
-    // Remove possible trailing slash from baseUrl
-    this._options.baseUrl = this._options.baseUrl.replace(/\/$/, '');
+    assert(this._options.rootUrl, 'Must provide a rootUrl or set the env var TASKCLUSTER_ROOT_URL');
+
+    this._options.rootUrl = this._options.rootUrl.replace(/\/$/, '');
 
     if (this._options.stats) {
       throw new Error('options.stats is now deprecated! Use options.monitor instead.');
@@ -158,7 +191,7 @@ exports.createClient = function(reference, name) {
     }
 
     // Shortcut for which default agent to use...
-    var isHttps = this._options.baseUrl.indexOf('https') === 0;
+    var isHttps = this._options.rootUrl.indexOf('https') === 0;
 
     if (this._options.agent) {
       // We have explicit options for new agent create one...
@@ -209,6 +242,17 @@ exports.createClient = function(reference, name) {
         this._extData = new Buffer(JSON.stringify(ext)).toString('base64');
       }
     }
+
+    // If fake, we create an array this.fakeCalls[method] = [] for each method
+    if (this._options.fake) {
+      debug('Creating taskcluster-client object in "fake" mode');
+      this.fakeCalls = {};
+      reference.entries.filter(e => e.type === 'function').forEach(e => this.fakeCalls[e.name] = []);
+      // Throw an error if creating fakes in production
+      if (process.env.NODE_ENV === 'production') {
+        new Error('taskcluster-client object created in "fake" mode, when NODE_ENV == "production"');
+      }
+    }
   };
 
   Client.prototype.use = function(optionsUpdates) {
@@ -253,7 +297,7 @@ exports.createClient = function(reference, name) {
         return text; // Preserve original
       });
       // Create url for the request
-      var url = this._options.baseUrl + endpoint;
+      var url = tcUrl.api(this._options.rootUrl, this._options.serviceName, this._options.serviceVersion, endpoint);
       // Add payload if one is given
       var payload = undefined;
       if (entry.input) {
@@ -387,6 +431,28 @@ exports.createClient = function(reference, name) {
         }
       };
 
+      // call out to the fake version, if set
+      if (this._options.fake) {
+        debug('Faking call to %s(%s)', entry.name, args.map(a => JSON.stringify(a, null, 2)).join(', '));
+        // Add a call record to fakeCalls[<method>]
+        var record = {};
+        if (payload !== undefined) {
+          record.payload = _.cloneDeep(payload);
+        }
+        if (query !== null) {
+          record.query = _.cloneDeep(query);
+        }
+        entry.args.forEach((k, i) => record[k] = _.cloneDeep(args[i]));
+        this.fakeCalls[entry.name].push(record);
+        // Call fake[<method>]
+        if (!this._options.fake[entry.name]) {
+          return Promise.reject(new Error(
+            `Faked taskcluster-client object does not have an implementation of ${entry.name}`,
+          ));
+        }
+        return this._options.fake[entry.name].apply(null, args);
+      }
+
       // Start the retry request loop
       return retryRequest();
     };
@@ -508,7 +574,7 @@ exports.createClient = function(reference, name) {
       }
     }
 
-    return this._options.baseUrl + endpoint + query;
+    return tcUrl.api(this._options.rootUrl, this._options.serviceName, this._options.serviceVersion, endpoint) + query;
   };
 
   // Utility function to construct a bewit URL for GET requests
@@ -730,7 +796,7 @@ exports.createTemporaryCredentials = function(options) {
  *    scopes: [...],        // associated scopes (if available)
  * }
  */
-exports.credentialInformation = function(credentials) {
+exports.credentialInformation = function(rootUrl, credentials) {
   var result = {};
   var issuer = credentials.clientId;
 
@@ -761,7 +827,7 @@ exports.credentialInformation = function(credentials) {
     result.type = 'permanent';
   }
 
-  var anonClient = new exports.Auth();
+  var anonClient = new exports.Auth({rootUrl});
   var clientLookup = anonClient.client(issuer).then(function(client) {
     var expires = new Date(client.expires);
     if (!result.expiry || result.expiry > expires) {
@@ -772,7 +838,7 @@ exports.credentialInformation = function(credentials) {
     }
   });
 
-  var credClient = new exports.Auth({credentials: credentials});
+  var credClient = new exports.Auth({rootUrl, credentials});
   var scopeLookup = credClient.currentScopes().then(function(response) {
     result.scopes = response.scopes;
   });

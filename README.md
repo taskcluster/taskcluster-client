@@ -20,6 +20,9 @@ var taskcluster = require('taskcluster-client');
 
 // Instantiate the Queue Client class
 var queue = new taskcluster.Queue({
+  // rootUrl for this Taskcluster instance
+  rootUrl: 'https://taskcluster.myproject.org',
+
   timeout: 30 * 1000, // timeout for _each_ invidual http request
 
   // By default we share a global agent if you specify your instance
@@ -88,7 +91,7 @@ var listener = new taskcluster.PulseListener({
 });
 
 // Instantiate the QueueEvents Client class
-var queueEvents = new taskcluster.QueueEvents();
+var queueEvents = new taskcluster.QueueEvents({rootUrl: ..});
 
 // Bind to task-completed events from queue that matches routing key pattern:
 //   'primary.<myTaskId>.*.*.*.*.*.#'
@@ -175,6 +178,47 @@ _signature_, you'll find that it matches the signatures below. Notice that all
 the methods returns a promise. A method with `: void` also returns a promise,
 that either resolves without giving a value or rejects with an error.
 
+## Fake API Methods
+
+In testing, it is useful to be able to "fake out" client methods so that they
+do not try to communicate with an actual, external service. The normal client
+argument checking still takes place, and a function of your design will be called
+instead of calling the external service.
+
+This is set up when constructing the client. Typically, this occurs in a
+`taskcluster-lib-loader` entry.
+
+```javascript
+setup(function () {
+  // inject the dependency with a stickyLoader from taskcluster-lib-testing
+  helper.load.inject('secrets', new taskcluster.Secrets({
+    fake: {
+      get: (name) => 'my-hardcoded-secret',
+    },
+  });
+});
+
+test('test the thing', async function() {
+  // Get secrets from injection above
+  let secrets = await helper.load('secrets');
+
+  // Do something with the secrets object
+  let s = await secrets.get('thing-to-read');
+  assume(s).is.a('string');
+
+  // Make assertions over recorded calls
+  assume(secrets.fakeCalls.get).deep.contains({
+    name: 'thing-to-read',
+  });
+
+  try {
+    await secrets.remove('...', {}); // throws and error because we didn't fake it
+  } catch (err) {
+    // pass
+  }
+});
+```
+
 ## Fake Listening
 
 It's inconvenient and error-prone to use real Pulse credentials in tests.  The
@@ -201,7 +245,7 @@ a real scenario).  Every fake message is delivered to the listeners' bindings.
 
 ### Methods in `taskcluster.Auth`
 ```js
-// Create Auth client instance with default baseUrl:
+// Create Auth client instance:
 //  - https://auth.taskcluster.net/v1
 var auth = new taskcluster.Auth(options);
 ```
@@ -237,7 +281,7 @@ var auth = new taskcluster.Auth(options);
 
 ### Methods in `taskcluster.AwsProvisioner`
 ```js
-// Create AwsProvisioner client instance with default baseUrl:
+// Create AwsProvisioner client instance:
 //  - https://aws-provisioner.taskcluster.net/v1
 var awsProvisioner = new taskcluster.AwsProvisioner(options);
 ```
@@ -257,9 +301,39 @@ var awsProvisioner = new taskcluster.AwsProvisioner(options);
  * `awsProvisioner.backendStatus() : result`
  * `awsProvisioner.ping() : void`
 
+### Methods in `taskcluster.EC2Manager`
+```js
+// Create EC2Manager client instance:
+//  - localhost:5555/v1
+var eC2Manager = new taskcluster.EC2Manager(options);
+```
+ * `eC2Manager.listWorkerTypes() : result`
+ * `eC2Manager.runInstance(workerType, payload) : void`
+ * `eC2Manager.terminateWorkerType(workerType) : void`
+ * `eC2Manager.workerTypeStats(workerType) : result`
+ * `eC2Manager.workerTypeHealth(workerType) : result`
+ * `eC2Manager.workerTypeErrors(workerType) : result`
+ * `eC2Manager.workerTypeState(workerType) : result`
+ * `eC2Manager.ensureKeyPair(name, payload) : void`
+ * `eC2Manager.removeKeyPair(name) : void`
+ * `eC2Manager.terminateInstance(region, instanceId) : void`
+ * `eC2Manager.getPrices() : result`
+ * `eC2Manager.getSpecificPrices(payload) : result`
+ * `eC2Manager.getHealth() : result`
+ * `eC2Manager.getRecentErrors() : result`
+ * `eC2Manager.regions() : void`
+ * `eC2Manager.amiUsage() : void`
+ * `eC2Manager.ebsUsage() : void`
+ * `eC2Manager.dbpoolStats() : void`
+ * `eC2Manager.allState() : void`
+ * `eC2Manager.sqsStats() : void`
+ * `eC2Manager.purgeQueues() : void`
+ * `eC2Manager.apiReference() : void`
+ * `eC2Manager.ping() : void`
+
 ### Methods in `taskcluster.Github`
 ```js
-// Create Github client instance with default baseUrl:
+// Create Github client instance:
 //  - https://github.taskcluster.net/v1
 var github = new taskcluster.Github(options);
 ```
@@ -274,7 +348,7 @@ var github = new taskcluster.Github(options);
 
 ### Methods in `taskcluster.Hooks`
 ```js
-// Create Hooks client instance with default baseUrl:
+// Create Hooks client instance:
 //  - https://hooks.taskcluster.net/v1
 var hooks = new taskcluster.Hooks(options);
 ```
@@ -294,20 +368,20 @@ var hooks = new taskcluster.Hooks(options);
 
 ### Methods in `taskcluster.Index`
 ```js
-// Create Index client instance with default baseUrl:
+// Create Index client instance:
 //  - https://index.taskcluster.net/v1
 var index = new taskcluster.Index(options);
 ```
  * `index.findTask(indexPath) : result`
- * `index.listNamespaces(namespace, payload) : result`
- * `index.listTasks(namespace, payload) : result`
+ * `index.listNamespaces(namespace, [options]) : result`
+ * `index.listTasks(namespace, [options]) : result`
  * `index.insertTask(namespace, payload) : result`
  * `index.findArtifactFromTask(indexPath, name) : void`
  * `index.ping() : void`
 
 ### Methods in `taskcluster.Login`
 ```js
-// Create Login client instance with default baseUrl:
+// Create Login client instance:
 //  - https://login.taskcluster.net/v1
 var login = new taskcluster.Login(options);
 ```
@@ -316,7 +390,7 @@ var login = new taskcluster.Login(options);
 
 ### Methods in `taskcluster.Notify`
 ```js
-// Create Notify client instance with default baseUrl:
+// Create Notify client instance:
 //  - https://notify.taskcluster.net/v1
 var notify = new taskcluster.Notify(options);
 ```
@@ -325,21 +399,9 @@ var notify = new taskcluster.Notify(options);
  * `notify.irc(payload) : void`
  * `notify.ping() : void`
 
-### Methods in `taskcluster.Pulse`
-```js
-// Create Pulse client instance with default baseUrl:
-//  - https://pulse.taskcluster.net/v1
-var pulse = new taskcluster.Pulse(options);
-```
- * `pulse.overview() : result`
- * `pulse.listNamespaces([options]) : result`
- * `pulse.namespace(namespace) : result`
- * `pulse.claimNamespace(namespace, payload) : result`
- * `pulse.ping() : void`
-
 ### Methods in `taskcluster.PurgeCache`
 ```js
-// Create PurgeCache client instance with default baseUrl:
+// Create PurgeCache client instance:
 //  - https://purge-cache.taskcluster.net/v1
 var purgeCache = new taskcluster.PurgeCache(options);
 ```
@@ -350,7 +412,7 @@ var purgeCache = new taskcluster.PurgeCache(options);
 
 ### Methods in `taskcluster.Queue`
 ```js
-// Create Queue client instance with default baseUrl:
+// Create Queue client instance:
 //  - https://queue.taskcluster.net/v1
 var queue = new taskcluster.Queue(options);
 ```
@@ -391,7 +453,7 @@ var queue = new taskcluster.Queue(options);
 
 ### Methods in `taskcluster.Secrets`
 ```js
-// Create Secrets client instance with default baseUrl:
+// Create Secrets client instance:
 //  - https://secrets.taskcluster.net/v1
 var secrets = new taskcluster.Secrets(options);
 ```
@@ -403,7 +465,7 @@ var secrets = new taskcluster.Secrets(options);
 
 ### Exchanges in `taskcluster.AuthEvents`
 ```js
-// Create AuthEvents client instance with default exchangePrefix:
+// Create AuthEvents client instance:
 //  - exchange/taskcluster-auth/v1/
 var authEvents = new taskcluster.AuthEvents(options);
 ```
@@ -416,7 +478,7 @@ var authEvents = new taskcluster.AuthEvents(options);
 
 ### Exchanges in `taskcluster.AwsProvisionerEvents`
 ```js
-// Create AwsProvisionerEvents client instance with default exchangePrefix:
+// Create AwsProvisionerEvents client instance:
 //  - exchange/taskcluster-aws-provisioner/v1/
 var awsProvisionerEvents = new taskcluster.AwsProvisionerEvents(options);
 ```
@@ -426,7 +488,7 @@ var awsProvisionerEvents = new taskcluster.AwsProvisionerEvents(options);
 
 ### Exchanges in `taskcluster.GithubEvents`
 ```js
-// Create GithubEvents client instance with default exchangePrefix:
+// Create GithubEvents client instance:
 //  - exchange/taskcluster-github/v1/
 var githubEvents = new taskcluster.GithubEvents(options);
 ```
@@ -436,7 +498,7 @@ var githubEvents = new taskcluster.GithubEvents(options);
 
 ### Exchanges in `taskcluster.PurgeCacheEvents`
 ```js
-// Create PurgeCacheEvents client instance with default exchangePrefix:
+// Create PurgeCacheEvents client instance:
 //  - exchange/taskcluster-purge-cache/v1/
 var purgeCacheEvents = new taskcluster.PurgeCacheEvents(options);
 ```
@@ -444,7 +506,7 @@ var purgeCacheEvents = new taskcluster.PurgeCacheEvents(options);
 
 ### Exchanges in `taskcluster.QueueEvents`
 ```js
-// Create QueueEvents client instance with default exchangePrefix:
+// Create QueueEvents client instance:
 //  - exchange/taskcluster-queue/v1/
 var queueEvents = new taskcluster.QueueEvents(options);
 ```
@@ -459,7 +521,7 @@ var queueEvents = new taskcluster.QueueEvents(options);
 
 ### Exchanges in `taskcluster.TreeherderEvents`
 ```js
-// Create TreeherderEvents client instance with default exchangePrefix:
+// Create TreeherderEvents client instance:
 //  - exchange/taskcluster-treeherder/v1/
 var treeherderEvents = new taskcluster.TreeherderEvents(options);
 ```
@@ -587,15 +649,29 @@ There is a number of configuration options for Client which affects invocation
 of API end-points. These are useful if using a non-default server, for example
 when setting up a staging area or testing locally.
 
-### Configuring API BaseUrls
-If you use the builtin API Client classes documented above you can configure
-the `baseUrl` when creating an instance of the client. As illustrated below:
+### Configuring API Root URL
+If you use the builtin API Client classes documented above you must configure
+the `rootUrl` when creating an instance of the client. As illustrated below:
 
 ```js
 var auth = new taskcluster.Auth({
   credentials:  {...},
-  baseUrl:      "http://localhost:4040" // Useful for development and testing
+  rootUrl:      "http://whatever.com"
 });
+```
+
+This can also be set by setting a
+`TASKCLUSTER_ROOT_URL` env var before importing taskcluster-client. You can also
+use global config options as below:
+
+```js
+// Configure default options
+taskcluster.config({
+  rootUrl: "https://somesite.com",
+});
+
+// No rootUrl needed here
+var auth = new taskcluster.Auth();
 ```
 
 ### Configuring Credentials
@@ -656,22 +732,6 @@ queue.defineTask(taskId taskDefinition).then(function(result) {
 });
 ```
 
-
-## Configuration of Exchange Bindings
-When a taskcluster Client class is instantiated the option `exchangePrefix` may
-be given. This will replace the default `exchangePrefix`. This can be useful if
-deploying a staging area or similar. See example below:
-
-```js
-
-// Instantiate the QueueEvents Client class
-var queueEvents = new taskcluster.QueueEvents({
-  exchangePrefix:     'staging-queue/v1/'
-});
-
-// This listener will now bind to: staging-queue/v1/task-completed
-listener.bind(queueEvents.taskCompleted({taskId: '<myTaskId>'}));
-```
 
 ## Using the Listener
 TaskCluster relies on pulse for exchange of messages. You'll need an pulse
@@ -795,7 +855,7 @@ var dateObject2 = taskcluster.fromNow("1 year", dateObject1);
 Your users may find the options for TaskCluster credentials overwhelming.  You
 can help by interpreting the credentials for them.
 
-The `credentialInformation(credentials, options)` function returns a promise
+The `credentialInformation(rootUrl, credentials)` function returns a promise
 with information about the given credentials:
 
 ```js
