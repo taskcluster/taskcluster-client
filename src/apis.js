@@ -2105,7 +2105,7 @@ module.exports = {
           "stability": "stable",
           "title": "Ping Server",
           "type": "function"
-        } 
+        }
       ],
       "name": "notify",
       "title": "Notification Service",
